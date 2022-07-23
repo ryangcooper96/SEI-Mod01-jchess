@@ -137,6 +137,11 @@ h1 span {
 }
 
 .square {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: red;
+
     min-height: 60px;
     min-width: 60px;
 
@@ -150,7 +155,5 @@ h1 span {
 .white {
     background: antiquewhite;
 }
-
-
 
 /* info */
