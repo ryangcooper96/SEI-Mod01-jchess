@@ -1,0 +1,156 @@
+/* global variables */
+:root {
+    --colour-white: rgb(250, 235, 215);
+    --colour-black: rgb(30, 30, 30);
+    --colour-boxshadow: rgba(48, 48, 48, 0.3);
+}
+
+/* general styling */
+* {
+    margin: 0;
+    box-sizing: border-box;
+}
+
+/* media queries */
+
+/*  header */
+header {
+    border-bottom: 4px solid silver;
+    padding: 5px 35px;
+}
+
+h1 {
+    display: inline;
+    font-size: xxx-large;
+    color: var(--colour-black);
+}
+
+h1 span {
+    font-size: xx-large;
+    /* color: var(--colour-white); */
+}
+
+
+/* game */
+#game {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-between;
+    align-items: center;
+
+    box-shadow: inset 0px 0px 150px 15px var(--colour-boxshadow);
+}
+
+.player-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    height: 45px;
+    width: 600px;
+    padding: 15px;
+
+    box-shadow: inset 2px 2px 25px 5px var(--colour-boxshadow);
+    text-shadow: 0.75px 0.75px 1px rgba(255, 255, 255, .25);
+}
+
+#player1 {
+    align-self: flex-start;
+    justify-content: flex-start;
+    
+    background: var(--colour-white);
+    color: var(--colour-black);
+
+    border-bottom-right-radius: 10px;
+}
+
+#player2 {
+    align-self: flex-end;
+    justify-content: flex-end;
+
+    background: var(--colour-black);
+    color: var(--colour-white);
+
+    border-top-left-radius: 10px;
+}
+
+#board {
+    display: flex;
+    flex-direction: row nowrap;
+
+    margin: 20px;
+
+    background: rgb(30, 30, 30);
+        
+    box-shadow: inset 5px 5px 35px 75px rgba(48, 48, 48, 0.9);
+    box-shadow: 2px 2px 30px 15px rgba(48, 48, 48, 0.3);
+    border-radius: 4px;
+    
+    text-shadow: 0.75px 0.75px 1px rgba(255, 255, 255, .25);
+    font-size: 20px;
+}
+
+.ranks {
+    display: flex;
+    flex-direction: column;
+    color: rgba(250, 235, 215, 0.75);
+    width: 60px;
+}
+
+.ranks div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60px;
+}
+
+.files {
+    display: flex;
+    flex-direction: row;
+    height: 60px;
+    color: rgba(250, 235, 215, 0.75);
+}
+
+.files div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50px;
+    width: 60px;
+}
+
+.files-top {
+    align-items: flex-end;
+}
+
+#board-squares {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: center;
+    align-items: center;
+
+    max-width: 484px;
+    max-height: 484px;
+
+    border: solid 2px rgba(250, 235, 215, 0.75);
+    border-radius: 2px;
+}
+
+.square {
+    min-height: 60px;
+    min-width: 60px;
+
+    box-shadow: inset 5px 5px 25px 10px rgba(48, 48, 48, 0.3);
+}
+
+.black {
+    background: rgb(30, 30, 30);
+}
+
+.white {
+    background: antiquewhite;
+}
+
+
+
+/* info */
