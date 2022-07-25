@@ -2,7 +2,7 @@
 :root {
     --colour-white: rgb(250, 235, 215);
     --colour-black: rgb(30, 30, 30);
-    --colour-boxshadow: rgba(48, 48, 48, 0.3);
+    --colour-box-shadow: rgba(48, 48, 48, 0.3);
 }
 
 /* general styling */
@@ -38,7 +38,7 @@ h1 span {
     justify-content: space-between;
     align-items: center;
 
-    box-shadow: inset 0px 0px 150px 15px var(--colour-boxshadow);
+    box-shadow: inset 0px 0px 150px 15px var(--colour-box-shadow);
 }
 
 .player-info {
@@ -50,7 +50,7 @@ h1 span {
     width: 600px;
     padding: 15px;
 
-    box-shadow: inset 2px 2px 25px 5px var(--colour-boxshadow);
+    box-shadow: inset 2px 2px 25px 5px var(--colour-box-shadow);
     text-shadow: 0.75px 0.75px 1px rgba(255, 255, 255, .25);
 }
 
