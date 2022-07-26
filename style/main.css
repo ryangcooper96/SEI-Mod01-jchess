@@ -74,6 +74,11 @@ h1 span {
     border-top-left-radius: 10px;
 }
 
+.player-captured img {
+    height: 40px;
+    width: 40px;
+}
+
 #board {
     display: flex;
     flex-direction: row nowrap;
@@ -158,6 +163,11 @@ h1 span {
 
 .highlight {
     box-shadow: inset 0px 0px 75px 75px rgba(80,170,30,0.9);
+}
+
+.active {
+    /* border: solid 3px rgba(80, 170, 30, 0.9); */
+    box-shadow: inset 0px 0px 15px 3px rgba(80, 170, 30, 0.9);
 }
 
 /* info */

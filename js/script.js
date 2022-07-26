@@ -1,7 +1,7 @@
 // function to run once DOM content is loaded
 function init() {
   const Chess = {
-    colour: "w",
+    colour: "b",
     firstSelection: undefined,
     board: [
       ["bR", "bN", "bB", "bK", "bQ", "bB", "bN", "bR"],
@@ -9,8 +9,8 @@ function init() {
       ["", "", "", "", "", "", "", ""],
       ["", "", "", "", "", "", "", ""],
       ["", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "bP", ""],
-      ["", "", "", "", "wP", "wP", "wP", "wP"],
+      ["", "", "", "", "", "", "", ""],
+      ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
       ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
     ],
     playerPieces: [],
@@ -75,6 +75,7 @@ function init() {
     }
   }
 
+  /* FIRST SELECTION */
   function firstSelection(finish) {
     Chess.playerPieces.forEach((piece) => {
       if (piece.row === parseInt(finish.dataset.row)) {
@@ -87,23 +88,40 @@ function init() {
           Chess.firstSelection.classList.add("highlight");
           // highlight the squares of all feasible moves for that piece
           piece.moves.forEach((square) => {
-            document
-              .querySelector(
-                `[data-row='${square.row}'][data-col='${square.col}']`
-              )
-              .classList.add("highlight");
+            if (
+              document
+                .querySelector(
+                  `[data-row='${square.row}'][data-col='${square.col}']`
+                )
+                .hasAttribute("data-piece")
+            ) {
+              document
+                .querySelector(
+                  `[data-row='${square.row}'][data-col='${square.col}']`
+                )
+                .parentElement.classList.add("highlight");
+            } else {
+              document
+                .querySelector(
+                  `[data-row='${square.row}'][data-col='${square.col}']`
+                )
+                .classList.add("highlight");
+            }
           });
         }
       }
     });
   }
 
+  /* SECOND SELECTION */
   function secondSelection(start, finish) {
     console.log("secondSelection");
     // due to bubbling, if a square containing a piece is selected then e.target will equate to the piece.
     if (finish.parentElement.classList.contains("highlight")) {
       if (!finish.dataset.piece.includes(Chess.colour)) {
         movePiece(start, finish.parentElement);
+        addCapturedPiece(finish);
+        setupNextTurn();
       } else {
         Chess.firstSelection = undefined;
       }
@@ -111,9 +129,14 @@ function init() {
     // if an empty square is selected.
     else if (finish.classList.contains("highlight")) {
       movePiece(start, finish);
+      setupNextTurn();
+    } else {
+      // remove the firstSelection key value...
+      Chess.firstSelection = undefined;
     }
   }
 
+  /* MOVE PIECE */
   function movePiece(start, finish) {
     console.log(start);
     console.log(finish);
@@ -131,7 +154,6 @@ function init() {
     start.innerHTML = "";
 
     console.log(Chess.board);
-    setupNextTurn();
   }
 
   /* SET-UP NEXT TURN */
@@ -144,6 +166,7 @@ function init() {
     Chess.playerPieces = [];
     filterPlayersPieces();
     viableMoves();
+    highlightActivePlayer();
   }
 
   /* TOGGLE PLAYER */
@@ -152,6 +175,30 @@ function init() {
       Chess.colour = "b";
     } else if (Chess.colour === "b") {
       Chess.colour = "w";
+    }
+  }
+
+  /* HIGHLIGHT ACTIVE PLAYER */
+  function highlightActivePlayer() {
+    if (Chess.colour === "w") {
+      document.getElementById("player1").classList.add("active");
+      document.getElementById("player2").classList.remove("active");
+    } else if (Chess.colour === "b") {
+      document.getElementById("player1").classList.remove("active");
+      document.getElementById("player2").classList.add("active");
+    }
+  }
+
+  /* ADD CAPTURED PIECE */
+  function addCapturedPiece(finish) {
+    if (Chess.colour === "w") {
+      document.getElementById(
+        "player1"
+      ).innerHTML += `<img width="45px" height="45px" src="./Chess-pieces/${finish.dataset.piece}.png">`;
+    } else if (Chess.colour === "b") {
+      document.getElementById(
+        "player2"
+      ).innerHTML += `<img width="45px" height="45px" src="./Chess-pieces/${finish.dataset.piece}.png">`;
     }
   }
 
@@ -168,6 +215,7 @@ function init() {
     }
   }
 
+  /* FILTER PLAYER PIECES */
   function filterPlayersPieces() {
     // loop over rows
     for (let i = 0; i < 8; i++) {
@@ -210,6 +258,18 @@ function init() {
   function pawn(element) {
     // determine direction by colour
     if (Chess.colour === "w") {
+      // move forward two rows
+      if (element.row - 2 === 4) {
+        if (
+          Chess.board[element.row - 1][element.col] === "" &&
+          Chess.board[element.row - 2][element.col] === ""
+        ) {
+          element.moves.push({
+            row: element.row - 2,
+            col: element.col,
+          });
+        }
+      }
       // move forward one row
       if (element.row - 1 > -1) {
         // if square {row: -1, col: 0} is empty
@@ -251,6 +311,18 @@ function init() {
         }
       }
     } else {
+      // move forward two rows
+      if (element.row + 2 === 3) {
+        if (
+          Chess.board[element.row + 1][element.col] === "" &&
+          Chess.board[element.row + 2][element.col] === ""
+        ) {
+          element.moves.push({
+            row: element.row + 2,
+            col: element.col,
+          });
+        }
+      }
       // move forward one row
       if (element.row + 1 < 8) {
         // if square {row: -1, col: 0} is empty
@@ -472,7 +544,7 @@ function init() {
         ) {
           element.moves.push({
             row: element.row + i,
-            col: element.col + j,
+            col: element.col,
           });
           break;
         }
@@ -588,7 +660,7 @@ function init() {
         ) {
           element.moves.push({
             row: element.row + i,
-            col: element.col + i,
+            col: element.col,
           });
           break;
         }
@@ -843,8 +915,7 @@ function init() {
 
   createBoardSquares();
   addPieces();
-  filterPlayersPieces();
-  viableMoves();
+  setupNextTurn();
 }
 
 window.addEventListener("DOMContentLoaded", init);

@@ -1,7 +1,18 @@
 # Chess
 ---
+## To-Do:
 
-
+- [ ] Responsive Design - Mobile Friendly
+- [ ] Display Winner Modal 
+- [ ] Game Settings
+- [ ] CPU
+- [ ] Display player moves in algebraic notation
+- [x] Highlight active player
+- [ ] Pawn Promotion
+- [x] Pawn moves two on first move
+- [ ] en Passant
+- [ ] Castling
+- [ ] Display captured pieces
 
 
 <br>
@@ -9,6 +20,7 @@
 
 ## The `Chess` Object
 ---
+
 <br>
 <br>
 
@@ -53,7 +65,7 @@ function selectionHandler(e) {
     } else {
         // Second Selection - a player selecting viable move.
         secondSelection(Chess.firstSelection, e.target);
-        // Reset 'Highlighted'
+        // Reset 'Highlighted' - 
         document.querySelectorAll(".square").forEach((square) => {
             if (square.classList.contains("highlight")) {
                 square.classList.remove("highlight");
