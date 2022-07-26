@@ -2,7 +2,7 @@
 function init() {
   const Chess = {
     colour: "w",
-    selected: undefined,
+    firstSelection: undefined,
     board: [
       ["bR", "bN", "bB", "bK", "bQ", "bB", "bN", "bR"],
       ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
@@ -13,7 +13,7 @@ function init() {
       ["", "", "", "", "wP", "wP", "wP", "wP"],
       ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
     ],
-    pieceLocations: [],
+    playerPieces: [],
   };
 
   // create board
@@ -50,7 +50,7 @@ function init() {
         square.setAttribute("data-col", j);
         // square.setAttribute("data-col", "empty");
         // add event listener
-        square.addEventListener("click", (e) => selectSquareHandler(e));
+        square.addEventListener("click", (e) => selectionHandler(e));
 
         // add square to board
         board.appendChild(square);
@@ -58,97 +58,91 @@ function init() {
     }
   }
 
-  /* SELECT SQUARE EVENT HANDLER FUNCTION */
-  function selectSquareHandler(e) {
-    // A PIECE IS ALREADY SELECTED...
-    // if selected square is "highlighted" - is a viable move (has class of highlight)...
-    if (e.target.parentElement.classList.contains("highlight")) {
-      if (!e.target.dataset.piece.includes(Chess.colour)) {
-        console.log("Capture Piece!");
-
-        // add new position of piece to board array
-        Chess.board[e.target.dataset.row][e.target.dataset.col] =
-          Chess.selected.firstChild.dataset.piece;
-
-        // remove old position of piece from board array
-        Chess.board[Chess.selected.dataset.row][Chess.selected.dataset.col] =
-          "";
-
-        // add piece img-html to new position...
-        e.target.parentElement.innerHTML = Chess.selected.innerHTML;
-
-        // remove piece img-html from old position...
-        Chess.selected.innerHTML = "";
-
-        console.log(Chess.board);
-        setupNextTurn();
-      }
-    } else if (e.target.classList.contains("highlight")) {
-      console.log("Move Piece!");
-
-      // add new position of piece to board array
-      Chess.board[e.target.dataset.row][e.target.dataset.col] =
-        Chess.selected.firstChild.dataset.piece;
-
-      // remove old position of piece from board array
-      Chess.board[Chess.selected.dataset.row][Chess.selected.dataset.col] = "";
-
-      //
-      Chess.selected.setAttribute("data-row", e.target.dataset.row);
-      Chess.selected.setAttribute("data-col", e.target.dataset.col);
-
-      // add piece img-html to new position...
-      e.target.innerHTML = `<img width="60px" height="60px" data-row="${e.target.dataset.row}" data-column="${e.target.dataset.column}" data-piece="${Chess.selected.firstChild.dataset.piece}" src="./Chess-pieces/${Chess.selected.firstChild.dataset.piece}.png">`;
-
-      // remove piece img-html from old position...
-      Chess.selected.innerHTML = "";
-
-      console.log(Chess.board);
-      setupNextTurn();
-    }
-
-    // remove highlight class if it exists (clean up!)
-    document.querySelectorAll(".square").forEach((square) => {
-      if (square.classList.contains("highlight")) {
-        square.classList.remove("highlight");
-      }
-    });
-
-    // A PIECE IS NOT CURRENTLY SELECTED...
-    // check if selected square is the location of one of this player's pieces
-    if (!Chess.selected) {
-      Chess.pieceLocations.forEach((piece) => {
-        if (piece.row === parseInt(e.target.dataset.row)) {
-          if (piece.col === parseInt(e.target.dataset.col)) {
-            // add the selected square DOM element to the selected key value
-            Chess.selected = document.querySelector(
-              `[data-row='${piece.row}'][data-col='${piece.col}']`
-            );
-            // highlight the selected square
-            Chess.selected.classList.add("highlight");
-            // highlight all the squares of feasible moves for that piece
-            piece.moves.forEach((square) => {
-              document
-                .querySelector(
-                  `[data-row='${square.row}'][data-col='${square.col}']`
-                )
-                .classList.add("highlight");
-            });
-          }
+  /* SELECTION HANDLER */
+  function selectionHandler(e) {
+    // check if firstSelection square is the location of one of this player's pieces
+    if (!Chess.firstSelection) {
+      firstSelection(e.target);
+    } else {
+      // if firstSelection square is "highlighted" - is a viable move (has class of highlight)...
+      secondSelection(Chess.firstSelection, e.target);
+      // remove highlight class if it exists (clean up!)
+      document.querySelectorAll(".square").forEach((square) => {
+        if (square.classList.contains("highlight")) {
+          square.classList.remove("highlight");
         }
       });
     }
+  }
+
+  function firstSelection(finish) {
+    Chess.playerPieces.forEach((piece) => {
+      if (piece.row === parseInt(finish.dataset.row)) {
+        if (piece.col === parseInt(finish.dataset.col)) {
+          // add the firstSelection square DOM element to the firstSelection key value
+          Chess.firstSelection = document.querySelector(
+            `[data-row='${piece.row}'][data-col='${piece.col}']`
+          );
+          // highlight the firstSelection square
+          Chess.firstSelection.classList.add("highlight");
+          // highlight the squares of all feasible moves for that piece
+          piece.moves.forEach((square) => {
+            document
+              .querySelector(
+                `[data-row='${square.row}'][data-col='${square.col}']`
+              )
+              .classList.add("highlight");
+          });
+        }
+      }
+    });
+  }
+
+  function secondSelection(start, finish) {
+    console.log("secondSelection");
+    // due to bubbling, if a square containing a piece is selected then e.target will equate to the piece.
+    if (finish.parentElement.classList.contains("highlight")) {
+      if (!finish.dataset.piece.includes(Chess.colour)) {
+        movePiece(start, finish.parentElement);
+      } else {
+        Chess.firstSelection = undefined;
+      }
+    }
+    // if an empty square is selected.
+    else if (finish.classList.contains("highlight")) {
+      movePiece(start, finish);
+    }
+  }
+
+  function movePiece(start, finish) {
+    console.log(start);
+    console.log(finish);
+    // add new position of piece to board array
+    Chess.board[finish.dataset.row][finish.dataset.col] =
+      start.firstChild.dataset.piece;
+
+    // remove old position of piece from board array
+    Chess.board[start.dataset.row][start.dataset.col] = "";
+
+    // add piece img-html to new position...
+    finish.innerHTML = `<img width="60px" height="60px" data-row="${finish.dataset.row}" data-col="${finish.dataset.col}" data-piece="${start.firstChild.dataset.piece}" src="./Chess-pieces/${start.firstChild.dataset.piece}.png">`;
+
+    // remove piece img-html from old position...
+    start.innerHTML = "";
+
+    console.log(Chess.board);
+    setupNextTurn();
   }
 
   /* SET-UP NEXT TURN */
   function setupNextTurn() {
     // toggle player
     togglePlayer();
-    // remove the selected key value...
-    Chess.selected = undefined;
+    // remove the firstSelection key value...
+    Chess.firstSelection = undefined;
     // remove the piece locations key value...
-    Chess.pieceLocations = [];
-    filterByColour();
+    Chess.playerPieces = [];
+    filterPlayersPieces();
     viableMoves();
   }
 
@@ -174,14 +168,14 @@ function init() {
     }
   }
 
-  function filterByColour() {
+  function filterPlayersPieces() {
     // loop over rows
     for (let i = 0; i < 8; i++) {
       // loop over columns
       for (let j = 0; j < 8; j++) {
         // if piece is the correct colour...
         if (Chess.board[i][j].includes(Chess.colour)) {
-          Chess.pieceLocations.push({
+          Chess.playerPieces.push({
             row: i,
             col: j,
             piece: Chess.board[i][j],
@@ -194,7 +188,7 @@ function init() {
 
   /* VIABLE MOVES */
   function viableMoves() {
-    Chess.pieceLocations.forEach((element) => {
+    Chess.playerPieces.forEach((element) => {
       if (element.piece.includes("P")) {
         pawn(element);
       } else if (element.piece.includes("R")) {
@@ -209,7 +203,7 @@ function init() {
         king(element);
       }
     });
-    console.log(Chess.pieceLocations);
+    console.log(Chess.playerPieces);
   }
 
   /* PAWN */
@@ -849,7 +843,7 @@ function init() {
 
   createBoardSquares();
   addPieces();
-  filterByColour();
+  filterPlayersPieces();
   viableMoves();
 }
 
