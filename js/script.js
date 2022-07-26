@@ -1,22 +1,8 @@
 // function to run once DOM content is loaded
 function init() {
-  const chess = {
+  const Chess = {
     colour: "w",
     selected: undefined,
-    pieces: {
-      wP: { feasibleMoves: [{ row: 0, col: 1 }] },
-      wN: 2,
-      wB: 3,
-      wR: 4,
-      wQ: 5,
-      wK: 6,
-      bP: 7,
-      bN: 8,
-      bB: 9,
-      bR: 10,
-      bQ: 11,
-      bK: 12,
-    },
     board: [
       ["bR", "bN", "bB", "bK", "bQ", "bB", "bN", "bR"],
       ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
@@ -61,8 +47,8 @@ function init() {
         }
         // add column and row dataset attributes with respective index values
         square.setAttribute("data-row", i);
-        square.setAttribute("data-column", j);
-        // square.setAttribute("data-column", "empty");
+        square.setAttribute("data-col", j);
+        // square.setAttribute("data-col", "empty");
         // add event listener
         square.addEventListener("click", (e) => selectSquareHandler(e));
 
@@ -74,35 +60,51 @@ function init() {
 
   /* SELECT SQUARE EVENT HANDLER FUNCTION */
   function selectSquareHandler(e) {
-    console.log(
-      `ROW: ${e.target.dataset.row}, COL: ${e.target.dataset.column}, PIECE: ${e.target.dataset.piece}`
-    );
+    // A PIECE IS ALREADY SELECTED...
     // if selected square is "highlighted" - is a viable move (has class of highlight)...
-    if (e.target.classList.contains("highlight")) {
-      // if selected square contains a player's piece...
-      if (e.target.dataset.piece.includes(chess.colour)) {
-        console.log("piece here");
-      }
-      // if selected square is empty or contains an opposition piece...
-      else {
-        console.log("Move player's piece!");
-        // add piece img-html to new position...
-        e.target.innerHTML = chess.selected.innerHTML;
+    if (e.target.parentElement.classList.contains("highlight")) {
+      if (!e.target.dataset.piece.includes(Chess.colour)) {
+        console.log("Capture Piece!");
 
         // add new position of piece to board array
-        chess.board[e.target.dataset.row][e.target.dataset.column] =
-          chess.selected.dataset.piece;
+        Chess.board[e.target.dataset.row][e.target.dataset.col] =
+          Chess.selected.firstChild.dataset.piece;
 
         // remove old position of piece from board array
-        chess.board[chess.selected.dataset.row][chess.selected.dataset.column] =
+        Chess.board[Chess.selected.dataset.row][Chess.selected.dataset.col] =
           "";
 
-        // remove piece img-html from old position...
-        chess.selected.innerHTML = "";
+        // add piece img-html to new position...
+        e.target.parentElement.innerHTML = Chess.selected.innerHTML;
 
-        // remove the selected key value...
-        chess.selected = undefined;
+        // remove piece img-html from old position...
+        Chess.selected.innerHTML = "";
+
+        console.log(Chess.board);
+        setupNextTurn();
       }
+    } else if (e.target.classList.contains("highlight")) {
+      console.log("Move Piece!");
+
+      // add new position of piece to board array
+      Chess.board[e.target.dataset.row][e.target.dataset.col] =
+        Chess.selected.firstChild.dataset.piece;
+
+      // remove old position of piece from board array
+      Chess.board[Chess.selected.dataset.row][Chess.selected.dataset.col] = "";
+
+      //
+      Chess.selected.setAttribute("data-row", e.target.dataset.row);
+      Chess.selected.setAttribute("data-col", e.target.dataset.col);
+
+      // add piece img-html to new position...
+      e.target.innerHTML = `<img width="60px" height="60px" data-row="${e.target.dataset.row}" data-column="${e.target.dataset.column}" data-piece="${Chess.selected.firstChild.dataset.piece}" src="./Chess-pieces/${Chess.selected.firstChild.dataset.piece}.png">`;
+
+      // remove piece img-html from old position...
+      Chess.selected.innerHTML = "";
+
+      console.log(Chess.board);
+      setupNextTurn();
     }
 
     // remove highlight class if it exists (clean up!)
@@ -112,40 +114,61 @@ function init() {
       }
     });
 
+    // A PIECE IS NOT CURRENTLY SELECTED...
     // check if selected square is the location of one of this player's pieces
-    chess.pieceLocations.forEach((piece) => {
-      if (piece.row === parseInt(e.target.dataset.row)) {
-        if (piece.col === parseInt(e.target.dataset.column)) {
-          // highlight the selected square
-          chess.selected = document.querySelector(
-            `[data-row='${piece.row}'][data-column='${piece.col}']`
-          );
-          chess.selected.classList.add("highlight");
-          // highlight all the squares of feasible moves for that piece
-          piece.moves.forEach((square) => {
-            document
-              .querySelector(
-                `[data-row='${square.row}'][data-column='${square.col}']`
-              )
-              .classList.add("highlight");
-          });
+    if (!Chess.selected) {
+      Chess.pieceLocations.forEach((piece) => {
+        if (piece.row === parseInt(e.target.dataset.row)) {
+          if (piece.col === parseInt(e.target.dataset.col)) {
+            // add the selected square DOM element to the selected key value
+            Chess.selected = document.querySelector(
+              `[data-row='${piece.row}'][data-col='${piece.col}']`
+            );
+            // highlight the selected square
+            Chess.selected.classList.add("highlight");
+            // highlight all the squares of feasible moves for that piece
+            piece.moves.forEach((square) => {
+              document
+                .querySelector(
+                  `[data-row='${square.row}'][data-col='${square.col}']`
+                )
+                .classList.add("highlight");
+            });
+          }
         }
-      }
-    });
-
-    // check if square has already been selected.
-    // a square has already been selected.
-    // a square has NOT been selected.
+      });
+    }
   }
 
-  // add chess-piece images
+  /* SET-UP NEXT TURN */
+  function setupNextTurn() {
+    // toggle player
+    togglePlayer();
+    // remove the selected key value...
+    Chess.selected = undefined;
+    // remove the piece locations key value...
+    Chess.pieceLocations = [];
+    filterByColour();
+    viableMoves();
+  }
+
+  /* TOGGLE PLAYER */
+  function togglePlayer() {
+    if (Chess.colour === "w") {
+      Chess.colour = "b";
+    } else if (Chess.colour === "b") {
+      Chess.colour = "w";
+    }
+  }
+
+  /* ADD PIECES */
   function addPieces() {
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 8; j++) {
-        if (chess.board[i][j]) {
+        if (Chess.board[i][j]) {
           document.querySelector(
-            `[data-row='${i}'][data-column='${j}']`
-          ).innerHTML = `<img width="60px" height="60px" data-row="${i}" data-column="${j}" data-piece="${chess.board[i][j]}" src="./chess-pieces/${chess.board[i][j]}.png">`;
+            `[data-row='${i}'][data-col='${j}']`
+          ).innerHTML = `<img width="60px" height="60px" data-row="${i}" data-col="${j}" data-piece="${Chess.board[i][j]}" src="./Chess-pieces/${Chess.board[i][j]}.png">`;
         }
       }
     }
@@ -157,22 +180,21 @@ function init() {
       // loop over columns
       for (let j = 0; j < 8; j++) {
         // if piece is the correct colour...
-        if (chess.board[i][j].includes(chess.colour)) {
-          chess.pieceLocations.push({
+        if (Chess.board[i][j].includes(Chess.colour)) {
+          Chess.pieceLocations.push({
             row: i,
             col: j,
-            piece: chess.board[i][j],
+            piece: Chess.board[i][j],
             moves: [],
           });
         }
       }
     }
-    console.log(chess.pieceLocations);
   }
 
   /* VIABLE MOVES */
   function viableMoves() {
-    chess.pieceLocations.forEach((element) => {
+    Chess.pieceLocations.forEach((element) => {
       if (element.piece.includes("P")) {
         pawn(element);
       } else if (element.piece.includes("R")) {
@@ -187,45 +209,93 @@ function init() {
         king(element);
       }
     });
-    console.log(chess.pieceLocations);
+    console.log(Chess.pieceLocations);
   }
 
   /* PAWN */
   function pawn(element) {
-    // move forward one row
-    if (element.row - 1 > -1) {
-      // if square {row: -1, col: 0} is empty
-      if (chess.board[element.row - 1][element.col] === "") {
-        element.moves.push({
-          row: element.row - 1,
-          col: element.col,
-        });
+    // determine direction by colour
+    if (Chess.colour === "w") {
+      // move forward one row
+      if (element.row - 1 > -1) {
+        // if square {row: -1, col: 0} is empty
+        if (Chess.board[element.row - 1][element.col] === "") {
+          element.moves.push({
+            row: element.row - 1,
+            col: element.col,
+          });
+        }
       }
-    }
-    // move forward diagonally left
-    if (element.row - 1 > -1 && element.col - 1 > -1) {
-      // if square {row: -1, col: -1} is occupied - opposition piece
-      if (
-        !chess.board[element.row - 1][element.col - 1].includes(chess.colour) &&
-        !(chess.board[element.row - 1][element.col - 1] === "")
-      ) {
-        element.moves.push({
-          row: element.row - 1,
-          col: element.col - 1,
-        });
+      // move forward diagonally left
+      if (element.row - 1 > -1 && element.col - 1 > -1) {
+        // if square {row: -1, col: -1} is occupied - opposition piece
+        if (
+          !Chess.board[element.row - 1][element.col - 1].includes(
+            Chess.colour
+          ) &&
+          !(Chess.board[element.row - 1][element.col - 1] === "")
+        ) {
+          element.moves.push({
+            row: element.row - 1,
+            col: element.col - 1,
+          });
+        }
       }
-    }
-    // move forward diagonally right
-    if (element.row - 1 > -1 && element.col + 1 < 8) {
-      // if square {row: -1, col: 1} is occupied - opposition piece
-      if (
-        !chess.board[element.row - 1][element.col + 1].includes(chess.colour) &&
-        !(chess.board[element.row - 1][element.col + 1] === "")
-      ) {
-        element.moves.push({
-          row: element.row - 1,
-          col: element.col + 1,
-        });
+      // move forward diagonally right
+      if (element.row - 1 > -1 && element.col + 1 < 8) {
+        // if square {row: -1, col: 1} is occupied - opposition piece
+        if (
+          !Chess.board[element.row - 1][element.col + 1].includes(
+            Chess.colour
+          ) &&
+          !(Chess.board[element.row - 1][element.col + 1] === "")
+        ) {
+          element.moves.push({
+            row: element.row - 1,
+            col: element.col + 1,
+          });
+        }
+      }
+    } else {
+      // move forward one row
+      if (element.row + 1 < 8) {
+        // if square {row: -1, col: 0} is empty
+        if (Chess.board[element.row + 1][element.col] === "") {
+          element.moves.push({
+            row: element.row + 1,
+            col: element.col,
+          });
+        }
+      }
+      // move forward diagonally left
+      if (element.row + 1 < 8 && element.col - 1 > -1) {
+        // if square {row: -1, col: -1} is occupied - opposition piece
+        if (
+          !Chess.board[element.row + 1][element.col - 1].includes(
+            Chess.colour
+          ) &&
+          !(Chess.board[element.row + 1][element.col - 1] === "")
+        ) {
+          element.moves.push({
+            row: element.row + 1,
+            col: element.col - 1,
+          });
+        }
+      }
+      // move forward diagonally right
+      if (element.row + 1 < 8 && element.col + 1 < 8) {
+        // if square {row: -1, col: 1} is occupied - opposition piece
+        if (
+          !Chess.board[element.row + 1][element.col + 1].includes(
+            Chess.colour
+          ) &&
+          !(Chess.board[element.row + 1][element.col + 1] === "")
+        ) {
+          element.moves.push({
+            row: element.row + 1,
+            col: element.col + 1,
+          });
+        }
       }
     }
   }
@@ -242,7 +312,6 @@ function init() {
       { row: 2, col: -1 },
       { row: -2, col: -1 },
     ].forEach((move) => {
-      console.log("move made.");
       if (
         element.row + move.row < 8 &&
         element.row + move.row > -1 &&
@@ -251,7 +320,7 @@ function init() {
       ) {
         // if square is empty
         if (
-          chess.board[element.row + move.row][element.col + move.col] === ""
+          Chess.board[element.row + move.row][element.col + move.col] === ""
         ) {
           element.moves.push({
             row: element.row + move.row,
@@ -260,8 +329,8 @@ function init() {
         }
         // if square is occupied - opposition piece
         else if (
-          !chess.board[element.row + move.row][element.col + move.col].includes(
-            chess.colour
+          !Chess.board[element.row + move.row][element.col + move.col].includes(
+            Chess.colour
           )
         ) {
           element.moves.push({
@@ -284,19 +353,19 @@ function init() {
       // if square is on board
       if (element.row + i < 8 && element.col + i < 8) {
         // if square is empty
-        if (chess.board[element.row + i][element.col + i] === "") {
+        if (Chess.board[element.row + i][element.col + i] === "") {
           element.moves.push({
             row: element.row + i,
-            col: element.col + j,
+            col: element.col + i,
           });
         }
         // if square is occupied - opposition piece
         else if (
-          !chess.board[element.row + i][element.col + i].includes(chess.colour)
+          !Chess.board[element.row + i][element.col + i].includes(Chess.colour)
         ) {
           element.moves.push({
             row: element.row + i,
-            col: element.col + j,
+            col: element.col + i,
           });
           break;
         }
@@ -311,7 +380,7 @@ function init() {
       // if square is on board
       if (element.row + i < 8 && element.col - i > -1) {
         // if square is empty
-        if (chess.board[element.row + i][element.col - i] === "") {
+        if (Chess.board[element.row + i][element.col - i] === "") {
           element.moves.push({
             row: element.row + i,
             col: element.col - i,
@@ -319,7 +388,7 @@ function init() {
         }
         // if square is occupied - opposition piece
         else if (
-          !chess.board[element.row + i][element.col - i].includes(chess.colour)
+          !Chess.board[element.row + i][element.col - i].includes(Chess.colour)
         ) {
           element.moves.push({
             row: element.row + i,
@@ -338,7 +407,7 @@ function init() {
       // if square is on board
       if (element.row - j > -1 && element.col + j < 8) {
         // if square is empty
-        if (chess.board[element.row - j][element.col + j] === "") {
+        if (Chess.board[element.row - j][element.col + j] === "") {
           element.moves.push({
             row: element.row - j,
             col: element.col + j,
@@ -346,7 +415,7 @@ function init() {
         }
         // if square is occupied - opposition piece
         else if (
-          !chess.board[element.row - j][element.col + j].includes(chess.colour)
+          !Chess.board[element.row - j][element.col + j].includes(Chess.colour)
         ) {
           element.moves.push({
             row: element.row - j,
@@ -365,7 +434,7 @@ function init() {
       // if square is on board
       if (element.row - j > -1 && element.col - j > -1) {
         // if square is empty
-        if (chess.board[element.row - j][element.col - j] === "") {
+        if (Chess.board[element.row - j][element.col - j] === "") {
           element.moves.push({
             row: element.row - j,
             col: element.col - j,
@@ -373,7 +442,7 @@ function init() {
         }
         // if square is occupied - opposition piece
         else if (
-          !chess.board[element.row - j][element.col - j].includes(chess.colour)
+          !Chess.board[element.row - j][element.col - j].includes(Chess.colour)
         ) {
           element.moves.push({
             row: element.row - j,
@@ -397,7 +466,7 @@ function init() {
       // if square is on board
       if (element.row + i < 8) {
         // if square is empty
-        if (chess.board[element.row + i][element.col] === "") {
+        if (Chess.board[element.row + i][element.col] === "") {
           element.moves.push({
             row: element.row + i,
             col: element.col,
@@ -405,7 +474,7 @@ function init() {
         }
         // if square is occupied - opposition piece
         else if (
-          !chess.board[element.row + i][element.col].includes(chess.colour)
+          !Chess.board[element.row + i][element.col].includes(Chess.colour)
         ) {
           element.moves.push({
             row: element.row + i,
@@ -426,7 +495,7 @@ function init() {
       // if square is on board
       if (element.row + i > -1) {
         // if square is empty
-        if (chess.board[element.row + i][element.col] === "") {
+        if (Chess.board[element.row + i][element.col] === "") {
           element.moves.push({
             row: element.row + i,
             col: element.col,
@@ -434,7 +503,7 @@ function init() {
         }
         // if square is occupied - opposition piece
         else if (
-          !chess.board[element.row + i][element.col].includes(chess.colour)
+          !Chess.board[element.row + i][element.col].includes(Chess.colour)
         ) {
           element.moves.push({
             row: element.row + i,
@@ -454,7 +523,7 @@ function init() {
       // if square is on board
       if (element.col + j < 8) {
         // if square is empty
-        if (chess.board[element.row][element.col + j] === "") {
+        if (Chess.board[element.row][element.col + j] === "") {
           element.moves.push({
             row: element.row,
             col: element.col + j,
@@ -462,7 +531,7 @@ function init() {
         }
         // if square is occupied - opposition piece
         else if (
-          !chess.board[element.row][element.col + j].includes(chess.colour)
+          !Chess.board[element.row][element.col + j].includes(Chess.colour)
         ) {
           element.moves.push({
             row: element.row,
@@ -481,7 +550,7 @@ function init() {
       // if square is on board
       if (element.col + j > -1) {
         // if square is empty
-        if (chess.board[element.row][element.col + j] === "") {
+        if (Chess.board[element.row][element.col + j] === "") {
           element.moves.push({
             row: element.row,
             col: element.col + j,
@@ -489,7 +558,7 @@ function init() {
         }
         // if square is occupied - opposition piece
         else if (
-          !chess.board[element.row][element.col + j].includes(chess.colour)
+          !Chess.board[element.row][element.col + j].includes(Chess.colour)
         ) {
           element.moves.push({
             row: element.row,
@@ -513,7 +582,7 @@ function init() {
       // if square is on board
       if (element.row + i < 8) {
         // if square is empty
-        if (chess.board[element.row + i][element.col] === "") {
+        if (Chess.board[element.row + i][element.col] === "") {
           element.moves.push({
             row: element.row + i,
             col: element.col,
@@ -521,11 +590,11 @@ function init() {
         }
         // if square is occupied - opposition piece
         else if (
-          !chess.board[element.row + i][element.col].includes(chess.colour)
+          !Chess.board[element.row + i][element.col].includes(Chess.colour)
         ) {
           element.moves.push({
             row: element.row + i,
-            col: element.col + j,
+            col: element.col + i,
           });
           break;
         }
@@ -542,7 +611,7 @@ function init() {
       // if square is on board
       if (element.row + i > -1) {
         // if square is empty
-        if (chess.board[element.row + i][element.col] === "") {
+        if (Chess.board[element.row + i][element.col] === "") {
           element.moves.push({
             row: element.row + i,
             col: element.col,
@@ -550,7 +619,7 @@ function init() {
         }
         // if square is occupied - opposition piece
         else if (
-          !chess.board[element.row + i][element.col].includes(chess.colour)
+          !Chess.board[element.row + i][element.col].includes(Chess.colour)
         ) {
           element.moves.push({
             row: element.row + i,
@@ -570,7 +639,7 @@ function init() {
       // if square is on board
       if (element.col + j < 8) {
         // if square is empty
-        if (chess.board[element.row][element.col + j] === "") {
+        if (Chess.board[element.row][element.col + j] === "") {
           element.moves.push({
             row: element.row,
             col: element.col + j,
@@ -578,7 +647,7 @@ function init() {
         }
         // if square is occupied - opposition piece
         else if (
-          !chess.board[element.row][element.col + j].includes(chess.colour)
+          !Chess.board[element.row][element.col + j].includes(Chess.colour)
         ) {
           element.moves.push({
             row: element.row,
@@ -597,7 +666,7 @@ function init() {
       // if square is on board
       if (element.col + j > -1) {
         // if square is empty
-        if (chess.board[element.row][element.col + j] === "") {
+        if (Chess.board[element.row][element.col + j] === "") {
           element.moves.push({
             row: element.row,
             col: element.col + j,
@@ -605,7 +674,7 @@ function init() {
         }
         // if square is occupied - opposition piece
         else if (
-          !chess.board[element.row][element.col + j].includes(chess.colour)
+          !Chess.board[element.row][element.col + j].includes(Chess.colour)
         ) {
           element.moves.push({
             row: element.row,
@@ -625,19 +694,19 @@ function init() {
       // if square is on board
       if (element.row + i < 8 && element.col + i < 8) {
         // if square is empty
-        if (chess.board[element.row + i][element.col + i] === "") {
+        if (Chess.board[element.row + i][element.col + i] === "") {
           element.moves.push({
             row: element.row + i,
-            col: element.col + j,
+            col: element.col + i,
           });
         }
         // if square is occupied - opposition piece
         else if (
-          !chess.board[element.row + i][element.col + i].includes(chess.colour)
+          !Chess.board[element.row + i][element.col + i].includes(Chess.colour)
         ) {
           element.moves.push({
             row: element.row + i,
-            col: element.col + j,
+            col: element.col + i,
           });
           break;
         }
@@ -652,7 +721,7 @@ function init() {
       // if square is on board
       if (element.row + i < 8 && element.col - i > -1) {
         // if square is empty
-        if (chess.board[element.row + i][element.col - i] === "") {
+        if (Chess.board[element.row + i][element.col - i] === "") {
           element.moves.push({
             row: element.row + i,
             col: element.col - i,
@@ -660,7 +729,7 @@ function init() {
         }
         // if square is occupied - opposition piece
         else if (
-          !chess.board[element.row + i][element.col - i].includes(chess.colour)
+          !Chess.board[element.row + i][element.col - i].includes(Chess.colour)
         ) {
           element.moves.push({
             row: element.row + i,
@@ -679,7 +748,7 @@ function init() {
       // if square is on board
       if (element.row - j > -1 && element.col + j < 8) {
         // if square is empty
-        if (chess.board[element.row - j][element.col + j] === "") {
+        if (Chess.board[element.row - j][element.col + j] === "") {
           element.moves.push({
             row: element.row - j,
             col: element.col + j,
@@ -687,7 +756,7 @@ function init() {
         }
         // if square is occupied - opposition piece
         else if (
-          !chess.board[element.row - j][element.col + j].includes(chess.colour)
+          !Chess.board[element.row - j][element.col + j].includes(Chess.colour)
         ) {
           element.moves.push({
             row: element.row - j,
@@ -706,7 +775,7 @@ function init() {
       // if square is on board
       if (element.row - j > -1 && element.col - j > -1) {
         // if square is empty
-        if (chess.board[element.row - j][element.col - j] === "") {
+        if (Chess.board[element.row - j][element.col - j] === "") {
           element.moves.push({
             row: element.row - j,
             col: element.col - j,
@@ -714,7 +783,7 @@ function init() {
         }
         // if square is occupied - opposition piece
         else if (
-          !chess.board[element.row - j][element.col - j].includes(chess.colour)
+          !Chess.board[element.row - j][element.col - j].includes(Chess.colour)
         ) {
           element.moves.push({
             row: element.row - j,
@@ -750,7 +819,7 @@ function init() {
       ) {
         // if square is empty
         if (
-          !chess.board[element.row + move.row][element.col + move.col] === ""
+          !Chess.board[element.row + move.row][element.col + move.col] === ""
         ) {
           element.moves.push({
             row: element.row + move.row,
@@ -759,8 +828,8 @@ function init() {
         }
         // if square is occupied - opposition piece
         else if (
-          !chess.board[element.row + move.row][element.col + move.col].includes(
-            chess.colour
+          !Chess.board[element.row + move.row][element.col + move.col].includes(
+            Chess.colour
           )
         ) {
           element.moves.push({
