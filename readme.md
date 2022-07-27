@@ -1,7 +1,7 @@
 # Chess
 ---
 ## To-Do:
-
+---
 - [ ] Responsive Design - Mobile Friendly
 - [ ] Display Winner Modal 
 - [ ] Game Settings
@@ -12,15 +12,15 @@
 - [x] Pawn moves two on first move
 - [ ] en Passant
 - [ ] Castling
-- [ ] Display captured pieces
-
-
+- [x] Display captured pieces
+- [ ] In check
+- [ ] Checkmate
+- [ ] Stalemate
 <br>
 <br>
 
 ## The `Chess` Object
 ---
-
 <br>
 <br>
 
@@ -75,11 +75,111 @@ function selectionHandler(e) {
 }
 ```
 <br>
+We can see that if the `Chess` object's firstSelection key does not currently have a value then the `firstSelection()` function will run. Else if firstSelection does have a value set then the secondSelection will run; this will then be preceded by resetting the highlighted squares.
+<br>
 <br>
 
 ### First Selection | `firstSelection()`
 ---
+This function's purpose is to check if a player's piece has been selected and if so:
+1. Access the element from the DOM.
+2. Add the 'highlight' class to the parent square of the (piece) DOM Element selected.
+3. Add the 'highlight' class to the square of all feasible moves for the (piece) DOM Element selected:
+    - If the feasible move is an opposition piece, then it will target the Parent Element.
+    - If the feasible move is an empty square, then it wil target that Element.
+<br>    
+```
+function firstSelection(finish) {
+    Chess.playerPieces.forEach((piece) => {
+      if (piece.row === parseInt(finish.dataset.row)) {
+        if (piece.col === parseInt(finish.dataset.col)) {
+          // add the firstSelection square DOM element to the firstSelection key value
+          Chess.firstSelection = document.querySelector(
+            `[data-row='${piece.row}'][data-col='${piece.col}']`
+          );
+          // highlight the firstSelection square
+          Chess.firstSelection.classList.add("highlight");
+          // highlight the squares of all feasible moves for that piece
+          piece.moves.forEach((square) => {
+            if (
+              document
+                .querySelector(
+                  `[data-row='${square.row}'][data-col='${square.col}']`
+                )
+                .hasAttribute("data-piece")
+            ) {
+              document
+                .querySelector(
+                  `[data-row='${square.row}'][data-col='${square.col}']`
+                )
+                .parentElement.classList.add("highlight");
+            } else {
+              document
+                .querySelector(
+                  `[data-row='${square.row}'][data-col='${square.col}']`
+                )
+                .classList.add("highlight");
+            }
+          });
+        }
+      }
+    });
+  }
+```
+<br>
+<br>
 
+### Second Selection | `secondSelection()`
+---
+This function's purpose is to check if a feasible move has been selected, and if this move is:
+1. An opposition piece - which will initiate:
+    - movePiece()
+    - addCapturedPiece()
+    - setupNextTurn()
+2. An empty square - which will initiate:
+    - movePiece()
+    - setupNextTurn()
+<br>
+```
+  function secondSelection(start, finish) {
+    console.log("secondSelection");
+    // due to bubbling, if a square containing a piece is selected then e.target will equate to the piece.
+    if (finish.parentElement.classList.contains("highlight")) {
+      if (!finish.dataset.piece.includes(Chess.colour)) {
+        movePiece(start, finish.parentElement);
+        addCapturedPiece(finish);
+        setupNextTurn();
+      } else {
+        Chess.firstSelection = undefined;
+      }
+    }
+    // if an empty square is selected.
+    else if (finish.classList.contains("highlight")) {
+      movePiece(start, finish);
+      setupNextTurn();
+    } else {
+      // remove the firstSelection key value...
+      Chess.firstSelection = undefined;
+    }
+  }
+```  
+<br>
+<br>
+
+### Move Piece | `movePiece()`
+---
+<br>
+<br>
+
+### Display Captured Piece | `addCapturedPiece()`
+---
+<br>
+<br>
+
+### Set Up Next Turn | `setUpNextTurn()`
+---
+<br>
+<br>
 
 ## Determining a Winner!
 ---

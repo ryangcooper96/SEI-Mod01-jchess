@@ -14,6 +14,7 @@ function init() {
       ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
     ],
     playerPieces: [],
+    oppositionPieces: [],
   };
 
   // create board
@@ -148,7 +149,7 @@ function init() {
     Chess.board[start.dataset.row][start.dataset.col] = "";
 
     // add piece img-html to new position...
-    finish.innerHTML = `<img width="60px" height="60px" data-row="${finish.dataset.row}" data-col="${finish.dataset.col}" data-piece="${start.firstChild.dataset.piece}" src="./Chess-pieces/${start.firstChild.dataset.piece}.png">`;
+    finish.innerHTML = `<img width="40px" height="60px" data-row="${finish.dataset.row}" data-col="${finish.dataset.col}" data-piece="${start.firstChild.dataset.piece}" src="./Chess-pieces/${start.firstChild.dataset.piece}.png">`;
 
     // remove piece img-html from old position...
     start.innerHTML = "";
@@ -193,12 +194,12 @@ function init() {
   function addCapturedPiece(finish) {
     if (Chess.colour === "w") {
       document.getElementById(
-        "player1"
-      ).innerHTML += `<img width="45px" height="45px" src="./Chess-pieces/${finish.dataset.piece}.png">`;
+        "player1-captured"
+      ).innerHTML += `<img width="30px" height="45px" src="./Chess-pieces/${finish.dataset.piece}.png">`;
     } else if (Chess.colour === "b") {
       document.getElementById(
-        "player2"
-      ).innerHTML += `<img width="45px" height="45px" src="./Chess-pieces/${finish.dataset.piece}.png">`;
+        "player2-captured"
+      ).innerHTML += `<img width="30px" height="45px" src="./Chess-pieces/${finish.dataset.piece}.png">`;
     }
   }
 
@@ -209,7 +210,7 @@ function init() {
         if (Chess.board[i][j]) {
           document.querySelector(
             `[data-row='${i}'][data-col='${j}']`
-          ).innerHTML = `<img width="60px" height="60px" data-row="${i}" data-col="${j}" data-piece="${Chess.board[i][j]}" src="./Chess-pieces/${Chess.board[i][j]}.png">`;
+          ).innerHTML = `<img width="40px" height="60px" data-row="${i}" data-col="${j}" data-piece="${Chess.board[i][j]}" src="./Chess-pieces/${Chess.board[i][j]}.png">`;
         }
       }
     }
