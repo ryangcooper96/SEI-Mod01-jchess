@@ -1,5 +1,6 @@
 # Chess
 ---
+chess over 1500 years old, 2020 great resurgence, twitch 
 ## To-Do:
 ---
 - [ ] Responsive Design - Mobile Friendly

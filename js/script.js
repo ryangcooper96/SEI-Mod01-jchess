@@ -1,904 +1,645 @@
 // function to run once DOM content is loaded
 function init() {
-  const Chess = {
-    colour: "b",
-    firstSelection: undefined,
-    board: [
-      ["bR", "bN", "bB", "bK", "bQ", "bB", "bN", "bR"],
-      ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
-      ["", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", ""],
-      ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
-      ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
-    ],
-    playerPieces: [],
-    oppositionPieces: [],
-  };
-
-  // create board
-  const board = document.getElementById("board-squares");
-  function createBoardSquares() {
-    // loop for 8 rows
-    for (let i = 0; i < 8; i++) {
-      // loop for 8 columns
-      for (let j = 0; j < 8; j++) {
-        // create board square element
-        const square = document.createElement("div");
-        square.classList.add("square");
-        // if row is even...
-        if (i % 2) {
-          // if column is even...
-          if (j % 2) {
-            square.classList.add("white");
-            // if column is odd...
-          } else {
-            square.classList.add("black");
-          }
-          // if row is odd...
-        } else {
-          // if column is even...
-          if (j % 2) {
-            square.classList.add("black");
-            // if column is odd...
-          } else {
-            square.classList.add("white");
-          }
-        }
-        // add column and row dataset attributes with respective index values
-        square.setAttribute("data-row", i);
-        square.setAttribute("data-col", j);
-        // square.setAttribute("data-col", "empty");
-        // add event listener
-        square.addEventListener("click", (e) => selectionHandler(e));
-
-        // add square to board
-        board.appendChild(square);
-      }
+  class Player {
+    constructor(player, name, colour) {
+      this.player = player;
+      this.name = name;
+      this.colour = colour;
+      this.pieces = [];
     }
   }
 
-  /* SELECTION HANDLER */
-  function selectionHandler(e) {
-    // check if firstSelection square is the location of one of this player's pieces
-    if (!Chess.firstSelection) {
-      firstSelection(e.target);
-    } else {
-      // if firstSelection square is "highlighted" - is a viable move (has class of highlight)...
-      secondSelection(Chess.firstSelection, e.target);
-      // remove highlight class if it exists (clean up!)
-      document.querySelectorAll(".square").forEach((square) => {
-        if (square.classList.contains("highlight")) {
-          square.classList.remove("highlight");
+  class Chess {
+    constructor(player1, player2) {
+      this.activePlayer = player2;
+      this.inactivePlayer = player1;
+      this.firstSelectionValue = undefined;
+      this.board = [
+        ["bR", "bN", "bB", "bK", "bQ", "bB", "bN", "bR"],
+        ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
+        ["", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", ""],
+        ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
+        ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
+      ];
+      this.boardHTML = document.getElementById("board-squares");
+    }
+    createUI() {
+      // loop for 8 ranks
+      for (let rank = 0; rank < 8; rank++) {
+        // loop for 8 columns
+        for (let file = 0; file < 8; file++) {
+          // create board square element
+          const square = document.createElement("div");
+          square.classList.add("square");
+          // if rank is even...
+          if (rank % 2) {
+            // if column is even...
+            if (file % 2) {
+              square.classList.add("white");
+              // if column is odd...
+            } else {
+              square.classList.add("black");
+            }
+            // if rank is odd...
+          } else {
+            // if column is even...
+            if (file % 2) {
+              square.classList.add("black");
+              // if column is odd...
+            } else {
+              square.classList.add("white");
+            }
+          }
+          // add column and rank dataset attributes with respective index values
+          square.setAttribute("data-rank", rank);
+          square.setAttribute("data-file", file);
+          // add event listener
+          square.addEventListener("click", (e) => this.selectionHandler(e));
+          // add piece
+          if (this.board[rank][file]) {
+            square.innerHTML = `<img width="40px" height="60px" data-rank="${rank}" data-file="${file}" data-piece="${this.board[rank][file]}" src="./Chess-pieces/${this.board[rank][file]}.png">`;
+          }
+          // add square to board
+          this.boardHTML.appendChild(square);
+        }
+      }
+    }
+    selectionHandler(e) {
+      console.log("selectionHandler();");
+      if (!this.firstSelectionValue) {
+        this.firstSelection(e.target);
+      } else {
+        // if firstSelection square is "highlighted" - is a viable move (has class of highlight)...
+        this.secondSelection(this.firstSelectionValue, e.target);
+        // remove highlight class if it exists (clean up!)
+        document.querySelectorAll(".square").forEach((square) => {
+          if (square.classList.contains("highlight")) {
+            square.classList.remove("highlight");
+          }
+        });
+      }
+    }
+    firstSelection(finish) {
+      this.activePlayer.pieces.forEach((piece) => {
+        if (piece.rank === parseInt(finish.dataset.rank)) {
+          if (piece.file === parseInt(finish.dataset.file)) {
+            // add the firstSelection square DOM element to the firstSelection key value
+            this.firstSelectionValue = document.querySelector(
+              `[data-rank='${piece.rank}'][data-file='${piece.file}']`
+            );
+            // highlight the firstSelection square
+            this.firstSelectionValue.classList.add("highlight");
+            // highlight the squares of all feasible moves for that piece
+            piece.moves.forEach((square) => {
+              if (
+                document
+                  .querySelector(
+                    `[data-rank='${square.rank}'][data-file='${square.file}']`
+                  )
+                  .hasAttribute("data-piece")
+              ) {
+                document
+                  .querySelector(
+                    `[data-rank='${square.rank}'][data-file='${square.file}']`
+                  )
+                  .parentElement.classList.add("highlight");
+              } else {
+                document
+                  .querySelector(
+                    `[data-rank='${square.rank}'][data-file='${square.file}']`
+                  )
+                  .classList.add("highlight");
+              }
+            });
+          }
         }
       });
     }
-  }
-
-  /* FIRST SELECTION */
-  function firstSelection(finish) {
-    Chess.playerPieces.forEach((piece) => {
-      if (piece.row === parseInt(finish.dataset.row)) {
-        if (piece.col === parseInt(finish.dataset.col)) {
-          // add the firstSelection square DOM element to the firstSelection key value
-          Chess.firstSelection = document.querySelector(
-            `[data-row='${piece.row}'][data-col='${piece.col}']`
-          );
-          // highlight the firstSelection square
-          Chess.firstSelection.classList.add("highlight");
-          // highlight the squares of all feasible moves for that piece
-          piece.moves.forEach((square) => {
-            if (
-              document
-                .querySelector(
-                  `[data-row='${square.row}'][data-col='${square.col}']`
-                )
-                .hasAttribute("data-piece")
-            ) {
-              document
-                .querySelector(
-                  `[data-row='${square.row}'][data-col='${square.col}']`
-                )
-                .parentElement.classList.add("highlight");
-            } else {
-              document
-                .querySelector(
-                  `[data-row='${square.row}'][data-col='${square.col}']`
-                )
-                .classList.add("highlight");
-            }
-          });
+    secondSelection(start, finish) {
+      // due to bubbling, if a square containing a piece is selected then e.target will equate to the piece.
+      if (finish.parentElement.classList.contains("highlight")) {
+        if (!finish.dataset.piece.includes(this.activePlayer.colour)) {
+          this.movePiece(start, finish.parentElement);
+          this.addCapturedPiece(finish);
+          this.setupNextTurn();
+        } else {
+          this.firstSelectionValue = undefined;
         }
       }
-    });
-  }
-
-  /* SECOND SELECTION */
-  function secondSelection(start, finish) {
-    console.log("secondSelection");
-    // due to bubbling, if a square containing a piece is selected then e.target will equate to the piece.
-    if (finish.parentElement.classList.contains("highlight")) {
-      if (!finish.dataset.piece.includes(Chess.colour)) {
-        movePiece(start, finish.parentElement);
-        addCapturedPiece(finish);
-        setupNextTurn();
+      // if an empty square is selected.
+      else if (finish.classList.contains("highlight")) {
+        this.movePiece(start, finish);
+        this.setupNextTurn();
       } else {
-        Chess.firstSelection = undefined;
+        this.firstSelectionValue = undefined;
       }
     }
-    // if an empty square is selected.
-    else if (finish.classList.contains("highlight")) {
-      movePiece(start, finish);
-      setupNextTurn();
-    } else {
+    movePiece(start, finish) {
+      // add new position of piece to board array
+      this.board[finish.dataset.rank][finish.dataset.file] =
+        start.firstChild.dataset.piece;
+
+      // remove old position of piece from board array
+      this.board[start.dataset.rank][start.dataset.file] = "";
+
+      // add piece img-html to new position...
+      finish.innerHTML = `<img width="40px" height="60px" data-rank="${finish.dataset.rank}" data-file="${finish.dataset.file}" data-piece="${start.firstChild.dataset.piece}" src="./Chess-pieces/${start.firstChild.dataset.piece}.png">`;
+
+      // remove piece img-html from old position...
+      start.innerHTML = "";
+    }
+    addCapturedPiece(finish) {
+      if (this.activePlayer.colour === "w") {
+        document.getElementById(
+          "player1-captured"
+        ).innerHTML += `<img width="30px" height="45px" src="./Chess-pieces/${finish.dataset.piece}.png">`;
+      } else if (this.activePlayer.colour === "b") {
+        document.getElementById(
+          "player2-captured"
+        ).innerHTML += `<img width="30px" height="45px" src="./Chess-pieces/${finish.dataset.piece}.png">`;
+      }
+    }
+    setupNextTurn() {
+      // toggle player
+      this.togglePlayer();
       // remove the firstSelection key value...
-      Chess.firstSelection = undefined;
+      this.firstSelectionValue = undefined;
+      // remove the piece locations key value...
+      this.activePlayer.pieces = [];
+      this.inactivePlayer.pieces = [];
+      this.findPieces(this.activePlayer);
+      this.legalMoves(this.activePlayer.pieces);
+      this.highlightActivePlayer();
     }
-  }
-
-  /* MOVE PIECE */
-  function movePiece(start, finish) {
-    console.log(start);
-    console.log(finish);
-    // add new position of piece to board array
-    Chess.board[finish.dataset.row][finish.dataset.col] =
-      start.firstChild.dataset.piece;
-
-    // remove old position of piece from board array
-    Chess.board[start.dataset.row][start.dataset.col] = "";
-
-    // add piece img-html to new position...
-    finish.innerHTML = `<img width="40px" height="60px" data-row="${finish.dataset.row}" data-col="${finish.dataset.col}" data-piece="${start.firstChild.dataset.piece}" src="./Chess-pieces/${start.firstChild.dataset.piece}.png">`;
-
-    // remove piece img-html from old position...
-    start.innerHTML = "";
-
-    console.log(Chess.board);
-  }
-
-  /* SET-UP NEXT TURN */
-  function setupNextTurn() {
-    // toggle player
-    togglePlayer();
-    // remove the firstSelection key value...
-    Chess.firstSelection = undefined;
-    // remove the piece locations key value...
-    Chess.playerPieces = [];
-    filterPlayersPieces();
-    viableMoves();
-    highlightActivePlayer();
-  }
-
-  /* TOGGLE PLAYER */
-  function togglePlayer() {
-    if (Chess.colour === "w") {
-      Chess.colour = "b";
-    } else if (Chess.colour === "b") {
-      Chess.colour = "w";
+    // rewritten function - needs updating elsewhere
+    togglePlayer() {
+      let middleMan = this.activePlayer;
+      this.activePlayer = this.inactivePlayer;
+      this.inactivePlayer = middleMan;
+      console.log(this.activePlayer);
+      console.log(this.inactivePlayer);
     }
-  }
-
-  /* HIGHLIGHT ACTIVE PLAYER */
-  function highlightActivePlayer() {
-    if (Chess.colour === "w") {
-      document.getElementById("player1").classList.add("active");
-      document.getElementById("player2").classList.remove("active");
-    } else if (Chess.colour === "b") {
-      document.getElementById("player1").classList.remove("active");
-      document.getElementById("player2").classList.add("active");
+    // refactor with forEach & filter
+    findPieces(player) {
+      // loop over ranks
+      for (let rank = 0; rank < 8; rank++) {
+        // loop over columns
+        for (let file = 0; file < 8; file++) {
+          // if piece is the correct activePlayer.colour...
+          if (this.board[rank][file].includes(player.colour)) {
+            player.pieces.push({
+              rank: rank,
+              file: file,
+              piece: this.board[rank][file],
+              moves: [],
+            });
+          }
+        }
+      }
+      console.log(player.pieces);
+      //   console.log(this.inactivePlayer.colour);
     }
-  }
-
-  /* ADD CAPTURED PIECE */
-  function addCapturedPiece(finish) {
-    if (Chess.colour === "w") {
-      document.getElementById(
-        "player1-captured"
-      ).innerHTML += `<img width="30px" height="45px" src="./Chess-pieces/${finish.dataset.piece}.png">`;
-    } else if (Chess.colour === "b") {
-      document.getElementById(
-        "player2-captured"
-      ).innerHTML += `<img width="30px" height="45px" src="./Chess-pieces/${finish.dataset.piece}.png">`;
+    legalMoves(pieces) {
+      pieces.forEach((element) => {
+        // console.log(element);
+        if (element.piece.includes("P")) {
+          this.pawn(element);
+        } else if (element.piece.includes("R")) {
+          this.rook(element);
+        } else if (element.piece.includes("N")) {
+          this.knight(element);
+        } else if (element.piece.includes("B")) {
+          this.bishop(element);
+        } else if (element.piece.includes("Q")) {
+          this.queen(element);
+        } else if (element.piece.includes("K")) {
+          this.king(element);
+        }
+      });
     }
-  }
-
-  /* ADD PIECES */
-  function addPieces() {
-    for (let i = 0; i < 8; i++) {
-      for (let j = 0; j < 8; j++) {
-        if (Chess.board[i][j]) {
-          document.querySelector(
-            `[data-row='${i}'][data-col='${j}']`
-          ).innerHTML = `<img width="40px" height="60px" data-row="${i}" data-col="${j}" data-piece="${Chess.board[i][j]}" src="./Chess-pieces/${Chess.board[i][j]}.png">`;
+    // this could be refactored - access dom with w & b
+    highlightActivePlayer() {
+      if (this.activePlayer.colour === "w") {
+        document.getElementById("player1").classList.add("active");
+        document.getElementById("player2").classList.remove("active");
+      } else if (this.activePlayer.colour === "b") {
+        document.getElementById("player1").classList.remove("active");
+        document.getElementById("player2").classList.add("active");
+      }
+    }
+    pawn(element) {
+      if (element.piece.includes("w")) {
+        if (element.rank - 2 === 4) {
+          if (
+            this.isEmpty(this.boardLocation(element, -1, 0)) &&
+            this.isEmpty(this.boardLocation(element, -2, 0))
+          ) {
+            this.pushMove(element, -2, 0);
+          }
+        }
+        if (this.boundaryTop(element, -1)) {
+          if (this.isEmpty(this.boardLocation(element, -1, 0))) {
+            this.pushMove(element, -1, 0);
+          }
+        }
+        if (this.boundaryTop(element, -1) && this.boundaryLeft(element, -1)) {
+          if (
+            this.isPiece(
+              this.boardLocation(element, -1, -1),
+              this.inactivePlayer.colour
+            )
+          ) {
+            this.pushMove(element, -1, -1);
+          }
+        }
+        if (this.boundaryTop(element, -1) && this.boundaryRight(element, 1)) {
+          if (
+            this.isPiece(
+              this.boardLocation(element, -1, +1),
+              this.inactivePlayer.colour
+            )
+          ) {
+            this.pushMove(element, -1, +1);
+          }
+        }
+      } else if (element.piece.includes("b")) {
+        if (element.rank + 2 === 3) {
+          if (
+            this.isEmpty(this.boardLocation(element, +1, 0)) &&
+            this.isEmpty(this.boardLocation(element, +2, 0))
+          ) {
+            this.pushMove(element, +2, 0);
+          }
+        }
+        if (this.boundaryBottom(element, 1)) {
+          if (this.isEmpty(this.boardLocation(element, +1, 0))) {
+            this.pushMove(element, +1, 0);
+          }
+        }
+        if (this.boundaryBottom(element, 1) && this.boundaryLeft(element, -1)) {
+          if (
+            this.isPiece(
+              this.boardLocation(element, +1, -1),
+              this.inactivePlayer.colour
+            )
+          ) {
+            this.pushMove(element, +1, -1);
+          }
+        }
+        if (this.boundaryBottom(element, 1) && this.boundaryRight(element, 1)) {
+          if (
+            this.isPiece(
+              this.boardLocation(element, +1, +1),
+              this.inactivePlayer.colour
+            )
+          ) {
+            this.pushMove(element, +1, +1);
+          }
         }
       }
     }
-  }
-
-  /* FILTER PLAYER PIECES */
-  function filterPlayersPieces() {
-    // loop over rows
-    for (let i = 0; i < 8; i++) {
-      // loop over columns
-      for (let j = 0; j < 8; j++) {
-        // if piece is the correct colour...
-        if (Chess.board[i][j].includes(Chess.colour)) {
-          Chess.playerPieces.push({
-            row: i,
-            col: j,
-            piece: Chess.board[i][j],
-            moves: [],
-          });
+    rook(element) {
+      // loop for ranks + columns
+      // positive rank direction
+      //   console.log(this.inactivePlayer.colour);
+      for (let i = 1; i < 8; i++) {
+        if (this.boundaryBottom(element, i)) {
+          if (this.isEmpty(this.boardLocation(element, i, 0))) {
+            this.pushMove(element, i, 0);
+          } else if (
+            this.isPiece(
+              this.boardLocation(element, i, 0),
+              this.inactivePlayer.colour
+            )
+          ) {
+            if (
+              !this.isKing(
+                this.boardLocation(element, i, 0),
+                this.inactivePlayer.colour
+              )
+            ) {
+              this.pushMove(element, i, 0);
+            }
+            break;
+          } else {
+            break;
+          }
+        }
+      }
+      // negative rank direction
+      for (let i = 1; i < 8; i++) {
+        // console.log(`Row: ${element.rank - i}, Col: ${element.file + 0}`);
+        if (this.boundaryTop(element, -i)) {
+          if (this.isEmpty(this.boardLocation(element, -i, 0))) {
+            this.pushMove(element, -i, 0);
+          } else if (
+            this.isPiece(
+              this.boardLocation(element, -i, 0),
+              this.inactivePlayer.colour
+            )
+          ) {
+            if (
+              !this.isKing(
+                this.boardLocation(element, -i, 0),
+                this.inactivePlayer.colour
+              )
+            ) {
+              this.pushMove(element, -i, 0);
+            }
+            break;
+          } else {
+            break;
+          }
+        }
+      }
+      // positive file direction
+      for (let i = 1; i < 8; i++) {
+        if (this.boundaryRight(element, i)) {
+          if (this.isEmpty(this.boardLocation(element, 0, i))) {
+            this.pushMove(element, 0, i);
+          } else if (
+            this.isPiece(
+              this.boardLocation(element, 0, i),
+              this.inactivePlayer.colour
+            )
+          ) {
+            if (
+              !this.isKing(
+                this.boardLocation(element, 0, i),
+                this.inactivePlayer.colour
+              )
+            ) {
+              this.pushMove(element, 0, i);
+            }
+            break;
+          } else {
+            break;
+          }
+        }
+      }
+      // negative file direction
+      for (let i = 1; i < 8; i++) {
+        if (this.boundaryLeft(element, -i)) {
+          if (this.isEmpty(this.boardLocation(element, 0, -i))) {
+            this.pushMove(element, 0, -i);
+          } else if (
+            this.isPiece(
+              this.boardLocation(element, 0, -i),
+              this.inactivePlayer.colour
+            )
+          ) {
+            if (
+              !this.isKing(
+                this.boardLocation(element, 0, -i),
+                this.inactivePlayer.colour
+              )
+            ) {
+              this.pushMove(element, 0, -i);
+            }
+            break;
+          } else {
+            break;
+          }
         }
       }
     }
-  }
-
-  /* VIABLE MOVES */
-  function viableMoves() {
-    Chess.playerPieces.forEach((element) => {
-      if (element.piece.includes("P")) {
-        pawn(element);
-      } else if (element.piece.includes("R")) {
-        rook(element);
-      } else if (element.piece.includes("N")) {
-        knight(element);
-      } else if (element.piece.includes("B")) {
-        bishop(element);
-      } else if (element.piece.includes("Q")) {
-        queen(element);
-      } else if (element.piece.includes("K")) {
-        king(element);
-      }
-    });
-    console.log(Chess.playerPieces);
-  }
-
-  /* PAWN */
-  function pawn(element) {
-    // determine direction by colour
-    if (Chess.colour === "w") {
-      // move forward two rows
-      if (element.row - 2 === 4) {
+    knight(element) {
+      const knightMoves = [
+        { rank: 1, file: 2 },
+        { rank: -1, file: 2 },
+        { rank: 1, file: -2 },
+        { rank: -1, file: -2 },
+        { rank: 2, file: 1 },
+        { rank: -2, file: 1 },
+        { rank: 2, file: -1 },
+        { rank: -2, file: -1 },
+      ].forEach((move) => {
+        // console.log(move);
+        // console.log(this.boundaryLeft(element, move.file));
+        // console.log(this.boundaryTop(element, move.rank));
+        // console.log(this.boundaryLeft(element, move.file));
+        // console.log(this.boundaryBottom(element, move.rank));
         if (
-          boardLocation(element, -1, 0) === "" &&
-          boardLocation(element, -2, 0) === ""
+          this.boundaryLeft(element, move.file) &&
+          this.boundaryTop(element, move.rank) &&
+          this.boundaryRight(element, move.file) &&
+          this.boundaryBottom(element, move.rank)
         ) {
-          pushMove(element, -2, 0);
+          if (this.isEmpty(this.boardLocation(element, move.rank, move.file))) {
+            this.pushMove(element, move.rank, move.file);
+          } else if (
+            this.isPiece(
+              this.boardLocation(element, move.rank, move.file),
+              this.inactivePlayer.colour
+            )
+          ) {
+            if (
+              !this.isKing(
+                this.boardLocation(element, move.rank, move.file),
+                this.inactivePlayer.colour
+              )
+            ) {
+              this.pushMove(element, move.rank, move.file);
+            }
+          } else {
+          }
+        }
+      });
+    }
+    bishop(element) {
+      // loop for ranks + columns
+      // positive rank direction - positive column direction
+      for (let i = 1; i < 8; i++) {
+        if (this.boundaryBottom(element, i) && this.boundaryRight(element, i)) {
+          if (this.isEmpty(this.boardLocation(element, i, i))) {
+            this.pushMove(element, i, i);
+          } else if (
+            this.isPiece(
+              this.boardLocation(element, i, i),
+              this.inactivePlayer.colour
+            )
+          ) {
+            if (
+              !this.isKing(
+                this.boardLocation(element, i, i),
+                this.inactivePlayer.colour
+              )
+            ) {
+            }
+            this.pushMove(element, i, i);
+            break;
+          } else {
+            break;
+          }
         }
       }
-      // move forward one row
-      if (element.row - 1 > -1) {
-        // if square {row: -1, col: 0} is empty
-        if (boardLocation(element, -1, 0) === "") {
-          pushMove(element, -1, 0);
+      // positive rank direction - negative column direction
+      for (let i = 1; i < 8; i++) {
+        if (this.boundaryBottom(element, i) && this.boundaryLeft(element, -i)) {
+          if (this.isEmpty(this.boardLocation(element, i, -i))) {
+            this.pushMove(element, i, -i);
+          } else if (
+            this.isPiece(
+              this.boardLocation(element, i, -i),
+              this.inactivePlayer.colour
+            )
+          ) {
+            if (
+              !this.isKing(
+                this.boardLocation(element, i, -i),
+                this.inactivePlayer.colour
+              )
+            ) {
+              this.pushMove(element, i, -i);
+            }
+            break;
+          } else {
+            break;
+          }
         }
       }
-      // move forward diagonally left
-      if (element.row - 1 > -1 && element.col - 1 > -1) {
-        // if square {row: -1, col: -1} is occupied - opposition piece
+      // negative rank direction - positive column direction
+      for (let i = 1; i < 8; i++) {
+        if (this.boundaryTop(element, -i) && this.boundaryRight(element, i)) {
+          if (this.isEmpty(this.boardLocation(element, -i, i))) {
+            this.pushMove(element, -i, i);
+          } else if (
+            this.isPiece(
+              this.boardLocation(element, -i, i),
+              this.inactivePlayer.colour
+            )
+          ) {
+            if (
+              !this.isKing(
+                this.boardLocation(element, -i, i),
+                this.inactivePlayer.colour
+              )
+            ) {
+              this.pushMove(element, -i, i);
+            }
+            break;
+          } else {
+            break;
+          }
+        }
+      }
+      // negative rank direction - negative column direction
+      for (let i = 1; i < 8; i++) {
+        if (this.boundaryTop(element, -i) && this.boundaryLeft(element, -i)) {
+          if (this.isEmpty(this.boardLocation(element, -i, -i))) {
+            this.pushMove(element, -i, -i);
+          } else if (
+            this.isPiece(
+              this.boardLocation(element, -i, -i),
+              this.inactivePlayer.colour
+            )
+          ) {
+            if (
+              !this.isKing(
+                this.boardLocation(element, -i, -i),
+                this.inactivePlayer.colour
+              )
+            ) {
+              this.pushMove(element, -i, -i);
+            }
+            break;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    queen(element) {
+      this.rook(element);
+      this.bishop(element);
+    }
+    king(element) {
+      const kingMoves = [
+        { rank: -1, file: 0 },
+        { rank: -1, file: 1 },
+        { rank: 0, file: 1 },
+        { rank: 1, file: 1 },
+        { rank: 1, file: 0 },
+        { rank: 1, file: -1 },
+        { rank: 0, file: -1 },
+        { rank: -1, file: -1 },
+      ].forEach((move) => {
         if (
-          !boardLocation(element, -1, -1).includes(Chess.colour) &&
-          !(boardLocation(element, -1, -1) === "")
+          this.boundaryTop(element, move.rank) &&
+          this.boundaryRight(element, move.file) &&
+          this.boundaryBottom(element, move.rank) &&
+          this.boundaryLeft(element, move.file)
         ) {
-          pushMove(element, -1, -1);
+          if (this.isEmpty(this.boardLocation(element, move.rank, move.file))) {
+            this.pushMove(element, move.rank, move.file);
+          } else if (
+            this.isPiece(
+              this.boardLocation(element, move.rank, move.file),
+              this.inactivePlayer.colour
+            )
+          ) {
+            if (
+              !this.isKing(
+                this.boardLocation(element, move.rank, move.file),
+                this.inactivePlayer.colour
+              )
+            ) {
+              this.pushMove(element, move.rank, move.file);
+            }
+          } else {
+          }
         }
-      }
-      // move forward diagonally right
-      if (element.row - 1 > -1 && element.col + 1 < 8) {
-        // if square {row: -1, col: 1} is occupied - opposition piece
-        if (
-          !boardLocation(element, -1, +1).includes(Chess.colour) &&
-          !(boardLocation(element, -1, +1) === "")
-        ) {
-          pushMove(element, -1, +1);
-        }
-      }
-    } else if (Chess.colour === "b") {
-      // move forward two rows
-      if (element.row + 2 === 3) {
-        if (
-          boardLocation(element, +1, 0) === "" &&
-          boardLocation(element, +2, 0) === ""
-        ) {
-          pushMove(element, +2, 0);
-        }
-      }
-      // move forward one row
-      if (element.row + 1 < 8) {
-        // if square {row: -1, col: 0} is empty
-        if (boardLocation(element, +1, 0) === "") {
-          pushMove(element, +1, 0);
-        }
-      }
-      // move forward diagonally left
-      if (element.row + 1 < 8 && element.col - 1 > -1) {
-        // if square {row: -1, col: -1} is occupied - opposition piece
-        if (
-          !boardLocation(element, +1, -1).includes(Chess.colour) &&
-          !(boardLocation(element, +1, -1) === "")
-        ) {
-          pushMove(element, +1, -1);
-        }
-      }
-      // move forward diagonally right
-      if (element.row + 1 < 8 && element.col + 1 < 8) {
-        // if square {row: -1, col: 1} is occupied - opposition piece
-        if (
-          !boardLocation(element, +1, +1).includes(Chess.colour) &&
-          !(boardLocation(element, +1, +1) === "")
-        ) {
-          pushMove(element, +1, +1);
-        }
-      }
+      });
+    }
+    inCheck(move) {
+      // this.inactivePlayer.pieces;
+      // isKing();
+    }
+    isKing(boardLocation, colour) {
+      return boardLocation.includes(`${colour}K`);
+    }
+    isPiece(boardLocation, colour) {
+      return boardLocation.includes(`${colour}`);
+    }
+    isEmpty(boardLocation) {
+      return boardLocation === "";
+    }
+    boardLocation(element, i, j) {
+      return this.board[element.rank + i][element.file + j];
+    }
+    pushMove(element, i, j) {
+      element.moves.push({
+        rank: element.rank + i,
+        file: element.file + j,
+      });
+    }
+    boundaryLeft(element, move) {
+      return element.file + move > -1;
+    }
+    boundaryRight(element, move) {
+      return element.file + move < 8;
+    }
+    boundaryTop(element, move) {
+      return element.rank + move > -1;
+    }
+    boundaryBottom(element, move) {
+      return element.rank + move < 8;
     }
   }
 
-  /* KNIGHT */
-  function knight(element) {
-    const knightMoves = [
-      { row: 1, col: 2 },
-      { row: -1, col: 2 },
-      { row: 1, col: -2 },
-      { row: -1, col: -2 },
-      { row: 2, col: 1 },
-      { row: -2, col: 1 },
-      { row: 2, col: -1 },
-      { row: -2, col: -1 },
-    ].forEach((move) => {
-      if (
-        element.row + move.row < 8 &&
-        element.row + move.row > -1 &&
-        element.col + move.col < 8 &&
-        element.col + move.col > -1
-      ) {
-        // if square is empty
-        if (
-          Chess.board[element.row + move.row][element.col + move.col] === ""
-        ) {
-          element.moves.push({
-            row: element.row + move.row,
-            col: element.col + move.col,
-          });
-        }
-        // if square is occupied - opposition piece
-        else if (
-          !Chess.board[element.row + move.row][element.col + move.col].includes(
-            Chess.colour
-          )
-        ) {
-          element.moves.push({
-            row: element.row + move.row,
-            col: element.col + move.col,
-          });
-        }
-        // if square is occupied - player's piece
-        else {
-        }
-      }
-    });
-  }
+  const Player1 = new Player(1, "Ryan", "w");
+  const Player2 = new Player(2, "Burt", "b");
 
-  /* BISHOP */
-  function bishop(element) {
-    // loop for rows + columns
-    // positive row direction - positive column direction
-    for (let i = 1; i < 8; i++) {
-      // if square is on board
-      if (element.row + i < 8 && element.col + i < 8) {
-        // if square is empty
-        if (Chess.board[element.row + i][element.col + i] === "") {
-          element.moves.push({
-            row: element.row + i,
-            col: element.col + i,
-          });
-        }
-        // if square is occupied - opposition piece
-        else if (
-          !Chess.board[element.row + i][element.col + i].includes(Chess.colour)
-        ) {
-          element.moves.push({
-            row: element.row + i,
-            col: element.col + i,
-          });
-          break;
-        }
-        // if square is occupied - player's piece
-        else {
-          break;
-        }
-      }
-    }
-    // positive row direction - negative column direction
-    for (let i = 1; i < 8; i++) {
-      // if square is on board
-      if (element.row + i < 8 && element.col - i > -1) {
-        // if square is empty
-        if (Chess.board[element.row + i][element.col - i] === "") {
-          element.moves.push({
-            row: element.row + i,
-            col: element.col - i,
-          });
-        }
-        // if square is occupied - opposition piece
-        else if (
-          !Chess.board[element.row + i][element.col - i].includes(Chess.colour)
-        ) {
-          element.moves.push({
-            row: element.row + i,
-            col: element.col - i,
-          });
-          break;
-        }
-        // if square is occupied - player's piece
-        else {
-          break;
-        }
-      }
-    }
-    // negative row direction - positive column direction
-    for (let j = 1; j < 8; j++) {
-      // if square is on board
-      if (element.row - j > -1 && element.col + j < 8) {
-        // if square is empty
-        if (Chess.board[element.row - j][element.col + j] === "") {
-          element.moves.push({
-            row: element.row - j,
-            col: element.col + j,
-          });
-        }
-        // if square is occupied - opposition piece
-        else if (
-          !Chess.board[element.row - j][element.col + j].includes(Chess.colour)
-        ) {
-          element.moves.push({
-            row: element.row - j,
-            col: element.col + j,
-          });
-          break;
-        }
-        // if square is occupied - player's piece
-        else {
-          break;
-        }
-      }
-    }
-    // negative row direction - negative column direction
-    for (let j = 1; j < 8; j++) {
-      // if square is on board
-      if (element.row - j > -1 && element.col - j > -1) {
-        // if square is empty
-        if (Chess.board[element.row - j][element.col - j] === "") {
-          element.moves.push({
-            row: element.row - j,
-            col: element.col - j,
-          });
-        }
-        // if square is occupied - opposition piece
-        else if (
-          !Chess.board[element.row - j][element.col - j].includes(Chess.colour)
-        ) {
-          element.moves.push({
-            row: element.row - j,
-            col: element.col - j,
-          });
-          break;
-        }
-        // if square is occupied - player's piece
-        else {
-          break;
-        }
-      }
-    }
-  }
+  const Game = new Chess(Player1, Player2);
+  Game.createUI();
+  Game.setupNextTurn();
 
-  /* ROOK */
-  function rook(element) {
-    // loop for rows
-    // positive direction
-    for (let i = 1; i < 8; i++) {
-      // if square is on board
-      if (element.row + i < 8) {
-        // if square is empty
-        if (Chess.board[element.row + i][element.col] === "") {
-          element.moves.push({
-            row: element.row + i,
-            col: element.col,
-          });
-        }
-        // if square is occupied - opposition piece
-        else if (
-          !Chess.board[element.row + i][element.col].includes(Chess.colour)
-        ) {
-          element.moves.push({
-            row: element.row + i,
-            col: element.col,
-          });
-          break;
-        }
-        // if square is occupied - player's piece
-        else {
-          break;
-        }
-      }
-    }
-    // negative direction
-    for (let i = -1; i > -8; i--) {
-      //   console.log("Negative Row");
-      //   console.log(`r: ${element.row + i}, c: ${element.col}`);
-      // if square is on board
-      if (element.row + i > -1) {
-        // if square is empty
-        if (Chess.board[element.row + i][element.col] === "") {
-          element.moves.push({
-            row: element.row + i,
-            col: element.col,
-          });
-        }
-        // if square is occupied - opposition piece
-        else if (
-          !Chess.board[element.row + i][element.col].includes(Chess.colour)
-        ) {
-          element.moves.push({
-            row: element.row + i,
-            col: element.col,
-          });
-          break;
-        }
-        // if square is occupied - player's piece
-        else {
-          break;
-        }
-      }
-    }
-    // loop for columns...
-    // positive direction
-    for (let j = 1; j < 8; j++) {
-      // if square is on board
-      if (element.col + j < 8) {
-        // if square is empty
-        if (Chess.board[element.row][element.col + j] === "") {
-          element.moves.push({
-            row: element.row,
-            col: element.col + j,
-          });
-        }
-        // if square is occupied - opposition piece
-        else if (
-          !Chess.board[element.row][element.col + j].includes(Chess.colour)
-        ) {
-          element.moves.push({
-            row: element.row,
-            col: element.col + j,
-          });
-          break;
-        }
-        // if square is occupied - player's piece
-        else {
-          break;
-        }
-      }
-    }
-    // negative direction
-    for (let j = -1; j > -8; j--) {
-      // if square is on board
-      if (element.col + j > -1) {
-        // if square is empty
-        if (Chess.board[element.row][element.col + j] === "") {
-          element.moves.push({
-            row: element.row,
-            col: element.col + j,
-          });
-        }
-        // if square is occupied - opposition piece
-        else if (
-          !Chess.board[element.row][element.col + j].includes(Chess.colour)
-        ) {
-          element.moves.push({
-            row: element.row,
-            col: element.col + j,
-          });
-          break;
-        }
-        // if square is occupied - player's piece
-        else {
-          break;
-        }
-      }
-    }
-  }
-
-  /* QUEEN */
-  function queen(element) {
-    // loop for rows
-    // positive direction
-    for (let i = 1; i < 8; i++) {
-      // if square is on board
-      if (element.row + i < 8) {
-        // if square is empty
-        if (Chess.board[element.row + i][element.col] === "") {
-          element.moves.push({
-            row: element.row + i,
-            col: element.col,
-          });
-        }
-        // if square is occupied - opposition piece
-        else if (
-          !Chess.board[element.row + i][element.col].includes(Chess.colour)
-        ) {
-          element.moves.push({
-            row: element.row + i,
-            col: element.col,
-          });
-          break;
-        }
-        // if square is occupied - player's piece
-        else {
-          break;
-        }
-      }
-    }
-    // negative direction
-    for (let i = -1; i > -8; i--) {
-      //   console.log("Negative Row");
-      //   console.log(`r: ${element.row + i}, c: ${element.col}`);
-      // if square is on board
-      if (element.row + i > -1) {
-        // if square is empty
-        if (Chess.board[element.row + i][element.col] === "") {
-          element.moves.push({
-            row: element.row + i,
-            col: element.col,
-          });
-        }
-        // if square is occupied - opposition piece
-        else if (
-          !Chess.board[element.row + i][element.col].includes(Chess.colour)
-        ) {
-          element.moves.push({
-            row: element.row + i,
-            col: element.col,
-          });
-          break;
-        }
-        // if square is occupied - player's piece
-        else {
-          break;
-        }
-      }
-    }
-    // loop for columns...
-    // positive direction
-    for (let j = 1; j < 8; j++) {
-      // if square is on board
-      if (element.col + j < 8) {
-        // if square is empty
-        if (Chess.board[element.row][element.col + j] === "") {
-          element.moves.push({
-            row: element.row,
-            col: element.col + j,
-          });
-        }
-        // if square is occupied - opposition piece
-        else if (
-          !Chess.board[element.row][element.col + j].includes(Chess.colour)
-        ) {
-          element.moves.push({
-            row: element.row,
-            col: element.col + j,
-          });
-          break;
-        }
-        // if square is occupied - player's piece
-        else {
-          break;
-        }
-      }
-    }
-    // negative direction
-    for (let j = -1; j > -8; j--) {
-      // if square is on board
-      if (element.col + j > -1) {
-        // if square is empty
-        if (Chess.board[element.row][element.col + j] === "") {
-          element.moves.push({
-            row: element.row,
-            col: element.col + j,
-          });
-        }
-        // if square is occupied - opposition piece
-        else if (
-          !Chess.board[element.row][element.col + j].includes(Chess.colour)
-        ) {
-          element.moves.push({
-            row: element.row,
-            col: element.col + j,
-          });
-          break;
-        }
-        // if square is occupied - player's piece
-        else {
-          break;
-        }
-      }
-    }
-    // loop for rows + columns
-    // positive row direction - positive column direction
-    for (let i = 1; i < 8; i++) {
-      // if square is on board
-      if (element.row + i < 8 && element.col + i < 8) {
-        // if square is empty
-        if (Chess.board[element.row + i][element.col + i] === "") {
-          element.moves.push({
-            row: element.row + i,
-            col: element.col + i,
-          });
-        }
-        // if square is occupied - opposition piece
-        else if (
-          !Chess.board[element.row + i][element.col + i].includes(Chess.colour)
-        ) {
-          element.moves.push({
-            row: element.row + i,
-            col: element.col + i,
-          });
-          break;
-        }
-        // if square is occupied - player's piece
-        else {
-          break;
-        }
-      }
-    }
-    // positive row direction - negative column direction
-    for (let i = 1; i < 8; i++) {
-      // if square is on board
-      if (element.row + i < 8 && element.col - i > -1) {
-        // if square is empty
-        if (Chess.board[element.row + i][element.col - i] === "") {
-          element.moves.push({
-            row: element.row + i,
-            col: element.col - i,
-          });
-        }
-        // if square is occupied - opposition piece
-        else if (
-          !Chess.board[element.row + i][element.col - i].includes(Chess.colour)
-        ) {
-          element.moves.push({
-            row: element.row + i,
-            col: element.col - i,
-          });
-          break;
-        }
-        // if square is occupied - player's piece
-        else {
-          break;
-        }
-      }
-    }
-    // negative row direction - positive column direction
-    for (let j = 1; j < 8; j++) {
-      // if square is on board
-      if (element.row - j > -1 && element.col + j < 8) {
-        // if square is empty
-        if (Chess.board[element.row - j][element.col + j] === "") {
-          element.moves.push({
-            row: element.row - j,
-            col: element.col + j,
-          });
-        }
-        // if square is occupied - opposition piece
-        else if (
-          !Chess.board[element.row - j][element.col + j].includes(Chess.colour)
-        ) {
-          element.moves.push({
-            row: element.row - j,
-            col: element.col + j,
-          });
-          break;
-        }
-        // if square is occupied - player's piece
-        else {
-          break;
-        }
-      }
-    }
-    // negative row direction - negative column direction
-    for (let j = 1; j < 8; j++) {
-      // if square is on board
-      if (element.row - j > -1 && element.col - j > -1) {
-        // if square is empty
-        if (Chess.board[element.row - j][element.col - j] === "") {
-          element.moves.push({
-            row: element.row - j,
-            col: element.col - j,
-          });
-        }
-        // if square is occupied - opposition piece
-        else if (
-          !Chess.board[element.row - j][element.col - j].includes(Chess.colour)
-        ) {
-          element.moves.push({
-            row: element.row - j,
-            col: element.col - j,
-          });
-          break;
-        }
-        // if square is occupied - player's piece
-        else {
-          break;
-        }
-      }
-    }
-  }
-
-  /* KING */
-  function king(element) {
-    const kingMoves = [
-      { row: -1, col: 0 },
-      { row: -1, col: 1 },
-      { row: 0, col: 1 },
-      { row: 1, col: 1 },
-      { row: 1, col: 0 },
-      { row: 1, col: -1 },
-      { row: 0, col: -1 },
-      { row: -1, col: -1 },
-    ].forEach((move) => {
-      if (
-        element.row + move.row < 8 &&
-        element.row + move.row > -1 &&
-        element.col + move.col < 8 &&
-        element.col + move.col > -1
-      ) {
-        // if square is empty
-        if (
-          !Chess.board[element.row + move.row][element.col + move.col] === ""
-        ) {
-          element.moves.push({
-            row: element.row + move.row,
-            col: element.col + move.col,
-          });
-        }
-        // if square is occupied - opposition piece
-        else if (
-          !Chess.board[element.row + move.row][element.col + move.col].includes(
-            Chess.colour
-          )
-        ) {
-          element.moves.push({
-            row: element.row + move.row,
-            col: element.col + move.col,
-          });
-        }
-        // if square is occupied - player's piece
-        else {
-        }
-      }
-    });
-  }
-
-  /* FILTER CHECK */
-  function filterForCheck() {}
-  function kingCaptured() {}
-
-  /* BOARD POSITION */
-  function boardLocation(element, i, j) {
-    return Chess.board[element.row + i][element.col + j];
-  }
-
-  /* PUSH MOVE */
-  function pushMove(element, i, j) {
-    element.moves.push({
-      row: element.row + i,
-      col: element.col + j,
-    });
-  }
-
-  createBoardSquares();
-  addPieces();
-  setupNextTurn();
+  //   console.log(Player1);
+  //   console.log(Player2);
+  console.log(Game);
 }
 
 window.addEventListener("DOMContentLoaded", init);
