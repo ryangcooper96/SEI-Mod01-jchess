@@ -193,6 +193,7 @@ function init() {
           this.inactivePlayer.pieces.forEach((move) =>
             this.choosePieceFunction(move)
           );
+          move.moves = this.inactivePlayer.pieces;
         });
       });
       this.highlightActivePlayer();
@@ -219,6 +220,7 @@ function init() {
               file: file,
               piece: board[rank][file],
               moves: [],
+              board: board,
             });
           }
         }
@@ -627,10 +629,10 @@ function init() {
       return boardLocation === "";
     }
     boardLocation(element, i, j) {
-      return this.board[element.rank + i][element.file + j];
+      return element.board[element.rank + i][element.file + j];
     }
     pushMove(element, i, j, check = false) {
-      const tempBoard = [...this.board].map((file) => [...file]);
+      const tempBoard = [...element.board].map((file) => [...file]);
       tempBoard[element.rank + i][element.file + j] =
         this.board[element.rank][element.file];
       tempBoard[element.rank][element.file] = "";
@@ -638,9 +640,10 @@ function init() {
       element.moves.push({
         rank: element.rank + i,
         file: element.file + j,
+        piece: element.piece,
+        moves: [],
         board: tempBoard,
         check: check,
-        moves: [],
       });
     }
     boundaryLeft(element, move) {
