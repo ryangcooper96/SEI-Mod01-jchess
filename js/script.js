@@ -6,19 +6,9 @@ function init() {
       this.name = name;
       this.colour = colour;
       this.pieces = [];
+      this.check = false;
     }
   }
-
-  let board = [
-    ["bR", "bN", "bB", "bK", "bQ", "bB", "bN", "bR"],
-    ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
-    ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
-  ];
 
   class Chess {
     constructor(player1, player2) {
@@ -26,7 +16,7 @@ function init() {
       this.inactivePlayer = player1;
       this.firstSelectionValue = undefined;
       this.board = [
-        ["bR", "bN", "bB", "bK", "bQ", "bB", "bN", "bR"],
+        ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
         ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
         ["", "", "", "", "", "", "", ""],
         ["", "", "", "", "", "", "", ""],
@@ -105,7 +95,7 @@ function init() {
             // highlight the firstSelection square
             this.firstSelectionValue.classList.add("highlight");
             // highlight the squares of all feasible moves for that piece
-            piece.moves.forEach((square) => {
+            piece.legalMoves.forEach((square) => {
               if (
                 document
                   .querySelector(
@@ -143,6 +133,25 @@ function init() {
       }
       // if an empty square is selected.
       else if (finish.classList.contains("highlight")) {
+        //
+        let piece = this.activePlayer.pieces.filter((piece) => {
+          // console.log(`(RANK: ${piece.rank}, FILE: ${piece.file})`);
+          return (
+            parseInt(piece.rank) == start.dataset.rank &&
+            parseInt(piece.file) == start.dataset.file
+          );
+        });
+        console.log(piece);
+        console.log(
+          piece.legalMoves.filter((move) => {
+            return (
+              move.rank == finish.dataset.rank &&
+              move.file == finish.dataset.file &&
+              move.check
+            );
+          })
+        );
+        //
         this.movePiece(start, finish);
         this.setupNextTurn();
       } else {
@@ -179,32 +188,59 @@ function init() {
       this.togglePlayer();
       // remove the firstSelection key value...
       this.firstSelectionValue = undefined;
-      // remove the piece locations key value...
-      this.activePlayer.pieces = [];
-      this.inactivePlayer.pieces = [];
       this.findPieces(this.activePlayer, this.board);
       this.activePlayer.pieces.forEach((piece) =>
-        this.choosePieceFunction(piece)
+        this.choosePieceFunction(this.activePlayer, this.inactivePlayer, piece)
       );
       this.activePlayer.pieces.forEach((piece) => {
         piece.moves.forEach((move) => {
           this.inactivePlayer.pieces = [];
           this.findPieces(this.inactivePlayer, move.board);
           this.inactivePlayer.pieces.forEach((move) =>
-            this.choosePieceFunction(move)
+            this.choosePieceFunction(
+              this.inactivePlayer,
+              this.activePlayer,
+              move
+            )
           );
           move.moves = this.inactivePlayer.pieces;
         });
       });
       this.highlightActivePlayer();
+      this.legalMoves();
+      this.checkmate();
+      console.log(Game);
+    }
+    legalMoves() {
+      this.activePlayer.pieces.forEach((piece) => {
+        // console.log(piece.moves);
+        piece.legalMoves = piece.moves.filter((activeMove) => {
+          return activeMove.moves.every((inactiveMoves) => {
+            return inactiveMoves.moves.every((inactiveMove) => {
+              // console.log(inactiveMove.check);
+              return !inactiveMove.check;
+            });
+          });
+        });
+      });
+    }
+    checkmate() {
+      if (
+        this.activePlayer.pieces.every((piece) => {
+          return piece.legalMoves.length === 0;
+        })
+      ) {
+        document
+          .querySelector(`[data-piece="${this.activePlayer.colour}K"]`)
+          .parentElement.classList.add("checkmate");
+        console.log("CHECKMATE!");
+      }
     }
     // rewritten function - needs updating elsewhere
     togglePlayer() {
       let middleMan = this.activePlayer;
       this.activePlayer = this.inactivePlayer;
       this.inactivePlayer = middleMan;
-      console.log(this.activePlayer);
-      console.log(this.inactivePlayer);
     }
     // refactor with forEach & filter
     findPieces(player, board) {
@@ -225,22 +261,22 @@ function init() {
           }
         }
       }
-      console.log(player.pieces);
+      // console.log(player.pieces);
       //   console.log(this.inactivePlayer.colour);
     }
-    choosePieceFunction(piece) {
+    choosePieceFunction(activePlayer, inactivePlayer, piece) {
       if (piece.piece.includes("P")) {
-        this.pawn(piece);
+        this.pawn(activePlayer, inactivePlayer, piece);
       } else if (piece.piece.includes("R")) {
-        this.rook(piece);
+        this.rook(activePlayer, inactivePlayer, piece);
       } else if (piece.piece.includes("N")) {
-        this.knight(piece);
+        this.knight(activePlayer, inactivePlayer, piece);
       } else if (piece.piece.includes("B")) {
-        this.bishop(piece);
+        this.bishop(activePlayer, inactivePlayer, piece);
       } else if (piece.piece.includes("Q")) {
-        this.queen(piece);
+        this.queen(activePlayer, inactivePlayer, piece);
       } else if (piece.piece.includes("K")) {
-        this.king(piece);
+        this.king(activePlayer, inactivePlayer, piece);
       }
     }
     // this could be refactored - access dom with w & b
@@ -253,7 +289,7 @@ function init() {
         document.getElementById("player2").classList.add("active");
       }
     }
-    pawn(element) {
+    pawn(activePlayer, inactivePlayer, element) {
       if (element.piece.includes("w")) {
         if (element.rank - 2 === 4) {
           if (
@@ -270,9 +306,16 @@ function init() {
         }
         if (this.boundaryTop(element, -1) && this.boundaryLeft(element, -1)) {
           if (
+            this.isKing(
+              this.boardLocation(element, -1, -1),
+              inactivePlayer.colour
+            )
+          ) {
+            this.pushMove(element, -1, -1, true);
+          } else if (
             this.isPiece(
               this.boardLocation(element, -1, -1),
-              this.inactivePlayer.colour
+              inactivePlayer.colour
             )
           ) {
             this.pushMove(element, -1, -1);
@@ -280,9 +323,16 @@ function init() {
         }
         if (this.boundaryTop(element, -1) && this.boundaryRight(element, 1)) {
           if (
+            this.isKing(
+              this.boardLocation(element, -1, +1),
+              inactivePlayer.colour
+            )
+          ) {
+            this.pushMove(element, -1, +1, true);
+          } else if (
             this.isPiece(
               this.boardLocation(element, -1, +1),
-              this.inactivePlayer.colour
+              inactivePlayer.colour
             )
           ) {
             this.pushMove(element, -1, +1);
@@ -306,7 +356,7 @@ function init() {
           if (
             this.isPiece(
               this.boardLocation(element, +1, -1),
-              this.inactivePlayer.colour
+              inactivePlayer.colour
             )
           ) {
             this.pushMove(element, +1, -1);
@@ -314,9 +364,16 @@ function init() {
         }
         if (this.boundaryBottom(element, 1) && this.boundaryRight(element, 1)) {
           if (
+            this.isKing(
+              this.boardLocation(element, 1, 1),
+              inactivePlayer.colour
+            )
+          ) {
+            this.pushMove(element, 1, 1, true);
+          } else if (
             this.isPiece(
               this.boardLocation(element, +1, +1),
-              this.inactivePlayer.colour
+              inactivePlayer.colour
             )
           ) {
             this.pushMove(element, +1, +1);
@@ -324,7 +381,7 @@ function init() {
         }
       }
     }
-    rook(element) {
+    rook(activePlayer, inactivePlayer, element) {
       // loop for ranks + columns
       // positive rank direction
       //   console.log(this.inactivePlayer.colour);
@@ -333,49 +390,55 @@ function init() {
           if (this.isEmpty(this.boardLocation(element, i, 0))) {
             this.pushMove(element, i, 0);
           } else if (
-            this.isPiece(
+            this.isKing(
               this.boardLocation(element, i, 0),
-              this.inactivePlayer.colour
+              inactivePlayer.colour
             )
           ) {
-            if (
-              !this.isKing(
-                this.boardLocation(element, i, 0),
-                this.inactivePlayer.colour
-              )
-            ) {
-              this.pushMove(element, i, 0);
-            }
+            this.pushMove(element, i, 0, true);
+            break;
+          } else if (
+            this.isPiece(
+              this.boardLocation(element, i, 0),
+              inactivePlayer.colour
+            )
+          ) {
+            this.pushMove(element, i, 0);
             break;
           } else {
             break;
           }
+        } else {
+          break;
         }
       }
+
       // negative rank direction
       for (let i = 1; i < 8; i++) {
-        // console.log(`Row: ${element.rank - i}, Col: ${element.file + 0}`);
         if (this.boundaryTop(element, -i)) {
           if (this.isEmpty(this.boardLocation(element, -i, 0))) {
             this.pushMove(element, -i, 0);
           } else if (
-            this.isPiece(
+            this.isKing(
               this.boardLocation(element, -i, 0),
-              this.inactivePlayer.colour
+              inactivePlayer.colour
             )
           ) {
-            if (
-              !this.isKing(
-                this.boardLocation(element, -i, 0),
-                this.inactivePlayer.colour
-              )
-            ) {
-              this.pushMove(element, -i, 0);
-            }
+            this.pushMove(element, -i, 0, true);
+            break;
+          } else if (
+            this.isPiece(
+              this.boardLocation(element, -i, 0),
+              inactivePlayer.colour
+            )
+          ) {
+            this.pushMove(element, -i, 0);
             break;
           } else {
             break;
           }
+        } else {
+          break;
         }
       }
       // positive file direction
@@ -384,23 +447,26 @@ function init() {
           if (this.isEmpty(this.boardLocation(element, 0, i))) {
             this.pushMove(element, 0, i);
           } else if (
-            this.isPiece(
+            this.isKing(
               this.boardLocation(element, 0, i),
-              this.inactivePlayer.colour
+              inactivePlayer.colour
             )
           ) {
-            if (
-              !this.isKing(
-                this.boardLocation(element, 0, i),
-                this.inactivePlayer.colour
-              )
-            ) {
-              this.pushMove(element, 0, i);
-            }
+            this.pushMove(element, 0, i, true);
+            break;
+          } else if (
+            this.isPiece(
+              this.boardLocation(element, 0, i),
+              inactivePlayer.colour
+            )
+          ) {
+            this.pushMove(element, 0, i);
             break;
           } else {
             break;
           }
+        } else {
+          break;
         }
       }
       // negative file direction
@@ -409,27 +475,30 @@ function init() {
           if (this.isEmpty(this.boardLocation(element, 0, -i))) {
             this.pushMove(element, 0, -i);
           } else if (
-            this.isPiece(
+            this.isKing(
               this.boardLocation(element, 0, -i),
-              this.inactivePlayer.colour
+              inactivePlayer.colour
             )
           ) {
-            if (
-              !this.isKing(
-                this.boardLocation(element, 0, -i),
-                this.inactivePlayer.colour
-              )
-            ) {
-              this.pushMove(element, 0, -i);
-            }
+            this.pushMove(element, 0, -i, true);
+            break;
+          } else if (
+            this.isPiece(
+              this.boardLocation(element, 0, -i),
+              inactivePlayer.colour
+            )
+          ) {
+            this.pushMove(element, 0, -i);
             break;
           } else {
             break;
           }
+        } else {
+          break;
         }
       }
     }
-    knight(element) {
+    knight(activePlayer, inactivePlayer, element) {
       const knightMoves = [
         { rank: 1, file: 2 },
         { rank: -1, file: 2 },
@@ -452,25 +521,25 @@ function init() {
             this.pushMove(element, move.rank, move.file);
             // CHECK IF THE PIECE MOVES TO SQUARE OF INACTIVE PLAYER PIECE.
           } else if (
+            this.isKing(
+              this.boardLocation(element, move.rank, move.file),
+              inactivePlayer.colour
+            )
+          ) {
+            this.pushMove(element, move.rank, move.file, true);
+          } else if (
             this.isPiece(
               this.boardLocation(element, move.rank, move.file),
               this.inactivePlayer.colour
             )
           ) {
-            if (
-              !this.isKing(
-                this.boardLocation(element, move.rank, move.file),
-                this.inactivePlayer.colour
-              )
-            ) {
-              this.pushMove(element, move.rank, move.file);
-            }
+            this.pushMove(element, move.rank, move.file);
           } else {
           }
         }
       });
     }
-    bishop(element) {
+    bishop(activePlayer, inactivePlayer, element) {
       // loop for ranks + columns
       // positive rank direction - positive column direction
       for (let i = 1; i < 8; i++) {
@@ -478,23 +547,26 @@ function init() {
           if (this.isEmpty(this.boardLocation(element, i, i))) {
             this.pushMove(element, i, i);
           } else if (
-            this.isPiece(
+            this.isKing(
               this.boardLocation(element, i, i),
-              this.inactivePlayer.colour
+              inactivePlayer.colour
             )
           ) {
-            if (
-              !this.isKing(
-                this.boardLocation(element, i, i),
-                this.inactivePlayer.colour
-              )
-            ) {
-            }
+            this.pushMove(element, i, i, true);
+            break;
+          } else if (
+            this.isPiece(
+              this.boardLocation(element, i, i),
+              inactivePlayer.colour
+            )
+          ) {
             this.pushMove(element, i, i);
             break;
           } else {
             break;
           }
+        } else {
+          break;
         }
       }
       // positive rank direction - negative column direction
@@ -503,19 +575,21 @@ function init() {
           if (this.isEmpty(this.boardLocation(element, i, -i))) {
             this.pushMove(element, i, -i);
           } else if (
-            this.isPiece(
+            this.isKing(
               this.boardLocation(element, i, -i),
-              this.inactivePlayer.colour
+              inactivePlayer.colour
             )
           ) {
-            if (
-              !this.isKing(
-                this.boardLocation(element, i, -i),
-                this.inactivePlayer.colour
-              )
-            ) {
-              this.pushMove(element, i, -i);
-            }
+            this.pushMove(element, i, -i, true);
+            break;
+          } else if (
+            this.isPiece(
+              this.boardLocation(element, i, -i),
+              inactivePlayer.colour
+            )
+          ) {
+            this.pushMove(element, i, -i);
+
             break;
           } else {
             break;
@@ -528,23 +602,27 @@ function init() {
           if (this.isEmpty(this.boardLocation(element, -i, i))) {
             this.pushMove(element, -i, i);
           } else if (
-            this.isPiece(
+            this.isKing(
               this.boardLocation(element, -i, i),
-              this.inactivePlayer.colour
+              inactivePlayer.colour
             )
           ) {
-            if (
-              !this.isKing(
-                this.boardLocation(element, -i, i),
-                this.inactivePlayer.colour
-              )
-            ) {
-              this.pushMove(element, -i, i);
-            }
+            this.pushMove(element, -i, i, true);
+            break;
+          } else if (
+            this.isPiece(
+              this.boardLocation(element, -i, i),
+              inactivePlayer.colour
+            )
+          ) {
+            this.pushMove(element, -i, i);
+
             break;
           } else {
             break;
           }
+        } else {
+          break;
         }
       }
       // negative rank direction - negative column direction
@@ -553,31 +631,34 @@ function init() {
           if (this.isEmpty(this.boardLocation(element, -i, -i))) {
             this.pushMove(element, -i, -i);
           } else if (
+            this.isKing(
+              this.boardLocation(element, -i, -i),
+              inactivePlayer.colour
+            )
+          ) {
+            this.pushMove(element, -i, -i, true);
+            break;
+          } else if (
             this.isPiece(
               this.boardLocation(element, -i, -i),
               this.inactivePlayer.colour
             )
           ) {
-            if (
-              !this.isKing(
-                this.boardLocation(element, -i, -i),
-                this.inactivePlayer.colour
-              )
-            ) {
-              this.pushMove(element, -i, -i);
-            }
+            this.pushMove(element, -i, -i);
             break;
           } else {
             break;
           }
+        } else {
+          break;
         }
       }
     }
-    queen(element) {
-      this.rook(element);
-      this.bishop(element);
+    queen(activePlayer, inactivePlayer, element) {
+      this.rook(activePlayer, inactivePlayer, element);
+      this.bishop(activePlayer, inactivePlayer, element);
     }
-    king(element) {
+    king(activePlayer, inactivePlayer, element) {
       const kingMoves = [
         { rank: -1, file: 0 },
         { rank: -1, file: 1 },
@@ -597,19 +678,19 @@ function init() {
           if (this.isEmpty(this.boardLocation(element, move.rank, move.file))) {
             this.pushMove(element, move.rank, move.file);
           } else if (
-            this.isPiece(
+            this.isKing(
               this.boardLocation(element, move.rank, move.file),
-              this.inactivePlayer.colour
+              inactivePlayer.colour
             )
           ) {
-            if (
-              !this.isKing(
-                this.boardLocation(element, move.rank, move.file),
-                this.inactivePlayer.colour
-              )
-            ) {
-              this.pushMove(element, move.rank, move.file);
-            }
+            this.pushMove(element, move.rank, move.file, true);
+          } else if (
+            this.isPiece(
+              this.boardLocation(element, move.rank, move.file),
+              inactivePlayer.colour
+            )
+          ) {
+            this.pushMove(element, move.rank, move.file);
           } else {
           }
         }
@@ -666,10 +747,6 @@ function init() {
   const Game = new Chess(Player1, Player2);
   Game.createUI();
   Game.setupNextTurn(board);
-
-  //   console.log(Player1);
-  //   console.log(Player2);
-  console.log(Game);
 }
 
 window.addEventListener("DOMContentLoaded", init);

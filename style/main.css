@@ -172,4 +172,8 @@ h1 span {
     box-shadow: inset 0px 0px 15px 3px rgba(80, 170, 30, 0.9);
 }
 
+.checkmate {
+        box-shadow: inset 0px 0px 75px 75px rgba(170, 30, 40, 0.9);
+}
+
 /* info */
