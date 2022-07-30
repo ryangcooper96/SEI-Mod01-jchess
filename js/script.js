@@ -9,6 +9,17 @@ function init() {
     }
   }
 
+  let board = [
+    ["bR", "bN", "bB", "bK", "bQ", "bB", "bN", "bR"],
+    ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
+    ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
+  ];
+
   class Chess {
     constructor(player1, player2) {
       this.activePlayer = player2;
@@ -24,6 +35,7 @@ function init() {
         ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
         ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
       ];
+      this.proposedBoard = undefined;
       this.boardHTML = document.getElementById("board-squares");
     }
     createUI() {
@@ -170,8 +182,19 @@ function init() {
       // remove the piece locations key value...
       this.activePlayer.pieces = [];
       this.inactivePlayer.pieces = [];
-      this.findPieces(this.activePlayer);
-      this.legalMoves(this.activePlayer.pieces);
+      this.findPieces(this.activePlayer, this.board);
+      this.activePlayer.pieces.forEach((piece) =>
+        this.choosePieceFunction(piece)
+      );
+      this.activePlayer.pieces.forEach((piece) => {
+        piece.moves.forEach((move) => {
+          this.inactivePlayer.pieces = [];
+          this.findPieces(this.inactivePlayer, move.board);
+          this.inactivePlayer.pieces.forEach((move) =>
+            this.choosePieceFunction(move)
+          );
+        });
+      });
       this.highlightActivePlayer();
     }
     // rewritten function - needs updating elsewhere
@@ -183,17 +206,18 @@ function init() {
       console.log(this.inactivePlayer);
     }
     // refactor with forEach & filter
-    findPieces(player) {
+    findPieces(player, board) {
+      player.pieces = [];
       // loop over ranks
       for (let rank = 0; rank < 8; rank++) {
         // loop over columns
         for (let file = 0; file < 8; file++) {
           // if piece is the correct activePlayer.colour...
-          if (this.board[rank][file].includes(player.colour)) {
+          if (board[rank][file].includes(player.colour)) {
             player.pieces.push({
               rank: rank,
               file: file,
-              piece: this.board[rank][file],
+              piece: board[rank][file],
               moves: [],
             });
           }
@@ -202,23 +226,20 @@ function init() {
       console.log(player.pieces);
       //   console.log(this.inactivePlayer.colour);
     }
-    legalMoves(pieces) {
-      pieces.forEach((element) => {
-        // console.log(element);
-        if (element.piece.includes("P")) {
-          this.pawn(element);
-        } else if (element.piece.includes("R")) {
-          this.rook(element);
-        } else if (element.piece.includes("N")) {
-          this.knight(element);
-        } else if (element.piece.includes("B")) {
-          this.bishop(element);
-        } else if (element.piece.includes("Q")) {
-          this.queen(element);
-        } else if (element.piece.includes("K")) {
-          this.king(element);
-        }
-      });
+    choosePieceFunction(piece) {
+      if (piece.piece.includes("P")) {
+        this.pawn(piece);
+      } else if (piece.piece.includes("R")) {
+        this.rook(piece);
+      } else if (piece.piece.includes("N")) {
+        this.knight(piece);
+      } else if (piece.piece.includes("B")) {
+        this.bishop(piece);
+      } else if (piece.piece.includes("Q")) {
+        this.queen(piece);
+      } else if (piece.piece.includes("K")) {
+        this.king(piece);
+      }
     }
     // this could be refactored - access dom with w & b
     highlightActivePlayer() {
@@ -417,19 +438,17 @@ function init() {
         { rank: 2, file: -1 },
         { rank: -2, file: -1 },
       ].forEach((move) => {
-        // console.log(move);
-        // console.log(this.boundaryLeft(element, move.file));
-        // console.log(this.boundaryTop(element, move.rank));
-        // console.log(this.boundaryLeft(element, move.file));
-        // console.log(this.boundaryBottom(element, move.rank));
+        // CHECK IF PIECE REMAINS ON BOARD AFTER MOVE
         if (
           this.boundaryLeft(element, move.file) &&
           this.boundaryTop(element, move.rank) &&
           this.boundaryRight(element, move.file) &&
           this.boundaryBottom(element, move.rank)
         ) {
+          // CHECK IF THE PIECE MOVES TO AN EMPTY SQUARE
           if (this.isEmpty(this.boardLocation(element, move.rank, move.file))) {
             this.pushMove(element, move.rank, move.file);
+            // CHECK IF THE PIECE MOVES TO SQUARE OF INACTIVE PLAYER PIECE.
           } else if (
             this.isPiece(
               this.boardLocation(element, move.rank, move.file),
@@ -610,10 +629,18 @@ function init() {
     boardLocation(element, i, j) {
       return this.board[element.rank + i][element.file + j];
     }
-    pushMove(element, i, j) {
+    pushMove(element, i, j, check = false) {
+      const tempBoard = [...this.board].map((file) => [...file]);
+      tempBoard[element.rank + i][element.file + j] =
+        this.board[element.rank][element.file];
+      tempBoard[element.rank][element.file] = "";
+      //
       element.moves.push({
         rank: element.rank + i,
         file: element.file + j,
+        board: tempBoard,
+        check: check,
+        moves: [],
       });
     }
     boundaryLeft(element, move) {
@@ -635,7 +662,7 @@ function init() {
 
   const Game = new Chess(Player1, Player2);
   Game.createUI();
-  Game.setupNextTurn();
+  Game.setupNextTurn(board);
 
   //   console.log(Player1);
   //   console.log(Player2);
