@@ -6,7 +6,7 @@ function init() {
       this.name = name;
       this.colour = colour;
       this.pieces = [];
-      this.check = false;
+      this.inCheck = false;
     }
   }
 
@@ -70,7 +70,7 @@ function init() {
       }
     }
     selectionHandler(e) {
-      console.log("selectionHandler();");
+      // console.log("selectionHandler();");
       if (!this.firstSelectionValue) {
         this.firstSelection(e.target);
       } else {
@@ -124,8 +124,10 @@ function init() {
       // due to bubbling, if a square containing a piece is selected then e.target will equate to the piece.
       if (finish.parentElement.classList.contains("highlight")) {
         if (!finish.dataset.piece.includes(this.activePlayer.colour)) {
+          this.returnMove(start, finish);
           this.movePiece(start, finish.parentElement);
           this.addCapturedPiece(finish);
+          this.pawnPromotion(start, finish);
           this.setupNextTurn();
         } else {
           this.firstSelectionValue = undefined;
@@ -134,25 +136,9 @@ function init() {
       // if an empty square is selected.
       else if (finish.classList.contains("highlight")) {
         //
-        let piece = this.activePlayer.pieces.filter((piece) => {
-          // console.log(`(RANK: ${piece.rank}, FILE: ${piece.file})`);
-          return (
-            parseInt(piece.rank) == start.dataset.rank &&
-            parseInt(piece.file) == start.dataset.file
-          );
-        });
-        console.log(piece);
-        console.log(
-          piece.legalMoves.filter((move) => {
-            return (
-              move.rank == finish.dataset.rank &&
-              move.file == finish.dataset.file &&
-              move.check
-            );
-          })
-        );
-        //
+        this.returnMove(start, finish);
         this.movePiece(start, finish);
+        this.pawnPromotion(start, finish);
         this.setupNextTurn();
       } else {
         this.firstSelectionValue = undefined;
@@ -208,9 +194,33 @@ function init() {
       });
       this.highlightActivePlayer();
       this.legalMoves();
-      this.checkmate();
+      this.result(this.activePlayer);
       console.log(Game);
     }
+    returnMove(start, finish) {
+      let piece = this.activePlayer.pieces.filter((piece) => {
+        // console.log(`(RANK: ${piece.rank}, FILE: ${piece.file})`);
+        // console.log(
+        //   `(RANK: ${start.dataset.rank}, FILE: ${start.dataset.file})`
+        // );
+        return (
+          piece.rank == start.dataset.rank && piece.file == start.dataset.file
+        );
+      })[0];
+      // console.log(piece);
+      let move = piece.legalMoves.filter((legalMove) => {
+        // console.log(`(RANK: ${legalMove.rank}, FILE: ${legalMove.file})`);
+        // console.log(
+        //   `(RANK: ${finish.dataset.rank}, FILE: ${finish.dataset.file})`
+        // );
+        return (
+          legalMove.rank == finish.dataset.rank &&
+          legalMove.file == finish.dataset.file
+        );
+      })[0];
+      this.lastMove = move;
+    }
+    //
     legalMoves() {
       this.activePlayer.pieces.forEach((piece) => {
         // console.log(piece.moves);
@@ -224,17 +234,48 @@ function init() {
         });
       });
     }
-    checkmate() {
+    //
+    result(player) {
+      //
+      if (
+        this.activePlayer.pieces.every((piece) => {
+          return piece.legalMoves.length === piece.moves.length;
+        })
+      ) {
+        player.inCheck = false;
+        console.log("NOTHING TO NOTE.");
+      } else {
+        player.inCheck = true;
+        console.log("CHECK!");
+      }
+      //
       if (
         this.activePlayer.pieces.every((piece) => {
           return piece.legalMoves.length === 0;
         })
       ) {
-        document
-          .querySelector(`[data-piece="${this.activePlayer.colour}K"]`)
-          .parentElement.classList.add("checkmate");
-        console.log("CHECKMATE!");
+        if (player.inCheck) {
+          // document
+          //   .querySelector(`[data-piece="${this.activePlayer.colour}K"]`)
+          //   .parentElement.classList.add("check");
+          console.log("CHECKMATE!");
+          this.resultModal(`Checkmate! ${this.inactivePlayer.name} Wins!`);
+        } else {
+          console.log("STALEMATE!");
+          this.resultModal("Stalemate! It's a draw...");
+        }
       }
+    }
+    //
+    resultModal(title) {
+      const resultModalElement = document.getElementById("result-modal");
+      const resultModalTitle = document.querySelector("#result-modal h2");
+      // const resultModalMessage = document.querySelector("#result-modal h2");
+      const resultModalButton = document.querySelector("#result-modal button");
+      resultModalButton.addEventListener("click", () => {
+        resultModalElement.style.display = "none";
+      });
+      resultModalElement.style.display = "flex";
     }
     // rewritten function - needs updating elsewhere
     togglePlayer() {
@@ -287,6 +328,12 @@ function init() {
       } else if (this.activePlayer.colour === "b") {
         document.getElementById("player1").classList.remove("active");
         document.getElementById("player2").classList.add("active");
+      }
+    }
+    pawnPromotion(start, finish) {
+      if (this.board[start.dataset.rank][start.dataset.file].includes("p")) {
+        if (finish.dataset.rank === 0 || finish.dataset.rank === 7) {
+        }
       }
     }
     pawn(activePlayer, inactivePlayer, element) {
@@ -695,10 +742,6 @@ function init() {
           }
         }
       });
-    }
-    inCheck(move) {
-      // this.inactivePlayer.pieces;
-      // isKing();
     }
     isKing(boardLocation, colour) {
       return boardLocation.includes(`${colour}K`);

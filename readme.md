@@ -14,9 +14,9 @@ chess over 1500 years old, 2020 great resurgence, twitch
 - [ ] en Passant
 - [ ] Castling
 - [x] Display captured pieces
-- [ ] In check
-- [ ] Checkmate
-- [ ] Stalemate
+- [X] In check
+- [x] Checkmate
+- [x] Stalemate
 <br>
 <br>
 
