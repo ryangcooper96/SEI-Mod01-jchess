@@ -25,7 +25,6 @@ function init() {
         ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
         ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
       ];
-      this.proposedBoard = undefined;
       this.boardHTML = document.getElementById("board-squares");
     }
     createUI() {
@@ -127,8 +126,12 @@ function init() {
           this.returnMove(start, finish);
           this.movePiece(start, finish.parentElement);
           this.addCapturedPiece(finish);
-          this.pawnPromotion(start, finish);
-          this.setupNextTurn();
+          this.pawnPromotion(finish);
+          document.querySelectorAll(".square").forEach((square) => {
+            if (square.classList.contains("check")) {
+              square.classList.remove("check");
+            }
+          });
         } else {
           this.firstSelectionValue = undefined;
         }
@@ -138,8 +141,12 @@ function init() {
         //
         this.returnMove(start, finish);
         this.movePiece(start, finish);
-        this.pawnPromotion(start, finish);
-        this.setupNextTurn();
+        this.pawnPromotion(finish);
+        document.querySelectorAll(".square").forEach((square) => {
+          if (square.classList.contains("check")) {
+            square.classList.remove("check");
+          }
+        });
       } else {
         this.firstSelectionValue = undefined;
       }
@@ -247,6 +254,9 @@ function init() {
       } else {
         player.inCheck = true;
         console.log("CHECK!");
+        document
+          .querySelector(`[data-piece="${this.activePlayer.colour}K"]`)
+          .parentElement.classList.add("check");
       }
       //
       if (
@@ -255,9 +265,9 @@ function init() {
         })
       ) {
         if (player.inCheck) {
-          // document
-          //   .querySelector(`[data-piece="${this.activePlayer.colour}K"]`)
-          //   .parentElement.classList.add("check");
+          document
+            .querySelector(`[data-piece="${this.activePlayer.colour}K"]`)
+            .parentElement.classList.add("check");
           console.log("CHECKMATE!");
           this.resultModal(`Checkmate! ${this.inactivePlayer.name} Wins!`);
         } else {
@@ -330,10 +340,50 @@ function init() {
         document.getElementById("player2").classList.add("active");
       }
     }
-    pawnPromotion(start, finish) {
-      if (this.board[start.dataset.rank][start.dataset.file].includes("p")) {
-        if (finish.dataset.rank === 0 || finish.dataset.rank === 7) {
-        }
+    pawnPromotion(finish) {
+      //
+      console.log(finish.dataset.rank);
+      console.log(finish.dataset.file);
+      console.log(this.board);
+      console.log(this.board[finish.dataset.rank][finish.dataset.file]);
+      console.log(
+        this.board[finish.dataset.rank][finish.dataset.file].includes("P")
+      );
+      console.log(finish.dataset.rank === "0" || finish.dataset.rank === "7");
+      if (
+        this.board[finish.dataset.rank][finish.dataset.file].includes("P") &&
+        (finish.dataset.rank === "0" || finish.dataset.rank === "7")
+      ) {
+        const promotionModalElement =
+          document.getElementById("promotion-modal");
+        const promotionPieces = document.getElementById("promotion-pieces");
+        const colour = this.activePlayer.colour;
+        //
+        const pieces = [colour + "R", colour + "N", colour + "B", colour + "Q"];
+        pieces.forEach((piece) => {
+          const promotionPiece = document.createElement("img");
+          promotionPiece.setAttribute("data-piece", piece);
+          promotionPiece.setAttribute("src", `./Chess-pieces/${piece}.png`);
+          promotionPiece.setAttribute("height", "60px");
+          promotionPiece.setAttribute("width", "40px");
+          promotionPiece.addEventListener("click", () => {
+            // update js board
+            this.board[finish.dataset.rank][finish.dataset.file] = piece;
+            // update DOM board
+            document.querySelector(
+              `[data-rank="${finish.dataset.rank}"][data-file="${finish.dataset.file}"]`
+            ).innerHTML = `<img width="40px" height="60px" data-rank="${finish.dataset.rank}" data-file="${finish.dataset.file}" data-piece="${piece}" src="./Chess-pieces/${piece}.png">`;
+            // close modal
+            promotionModalElement.style.display = "none";
+            //
+            this.setupNextTurn();
+          });
+          promotionPieces.appendChild(promotionPiece);
+        });
+        promotionModalElement.style.display = "flex";
+        console.log("Pawn Promotion!");
+      } else {
+        this.setupNextTurn();
       }
     }
     pawn(activePlayer, inactivePlayer, element) {

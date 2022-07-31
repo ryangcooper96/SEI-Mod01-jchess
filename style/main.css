@@ -63,7 +63,31 @@ h1 span {
     background: rgb(30, 30, 30, 0.8);;
     color: var(--colour-white);
     /* border: solid 2px var(--colour-white); */
+}
 
+#promotion-modal {
+    display: none;
+    /* display: flex; */
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+
+    position: fixed;
+    z-index: 1;
+
+    width: 50%;
+    height: 30%;
+
+    left: 25%;
+    top: 35%;
+
+    /* left: 250px;
+    top: 250px; */
+
+    background: rgb(30, 30, 30, 0.8);
+    ;
+    color: var(--colour-white);
+    /* border: solid 2px var(--colour-white); */
 }
 
 .player-info {
