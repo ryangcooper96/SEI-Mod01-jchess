@@ -4,12 +4,12 @@ chess over 1500 years old, 2020 great resurgence, twitch
 ## To-Do:
 ---
 - [ ] Responsive Design - Mobile Friendly
-- [ ] Display Winner Modal 
+- [x] Display Winner Modal 
 - [ ] Game Settings
 - [ ] CPU
 - [ ] Display player moves in algebraic notation
 - [x] Highlight active player
-- [ ] Pawn Promotion
+- [x] Pawn Promotion
 - [x] Pawn moves two on first move
 - [ ] en Passant
 - [ ] Castling
@@ -17,8 +17,13 @@ chess over 1500 years old, 2020 great resurgence, twitch
 - [X] In check
 - [x] Checkmate
 - [x] Stalemate
+- [] 50 moves
+- [] repeat same 3 moves
+- [] change check conditions
 <br>
 <br>
+new check conditions... need to have checkMoves as well as legalMoves
+
 
 ## The `Chess` Object
 ---

@@ -15,6 +15,7 @@ function init() {
       this.activePlayer = player2;
       this.inactivePlayer = player1;
       this.firstSelectionValue = undefined;
+      this.lastMove = undefined;
       this.board = [
         ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
         ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
@@ -126,12 +127,12 @@ function init() {
           this.returnMove(start, finish);
           this.movePiece(start, finish.parentElement);
           this.addCapturedPiece(finish);
-          this.pawnPromotion(finish);
           document.querySelectorAll(".square").forEach((square) => {
             if (square.classList.contains("check")) {
               square.classList.remove("check");
             }
           });
+          this.pawnPromotion(finish);
         } else {
           this.firstSelectionValue = undefined;
         }
@@ -141,12 +142,12 @@ function init() {
         //
         this.returnMove(start, finish);
         this.movePiece(start, finish);
-        this.pawnPromotion(finish);
         document.querySelectorAll(".square").forEach((square) => {
           if (square.classList.contains("check")) {
             square.classList.remove("check");
           }
         });
+        this.pawnPromotion(finish);
       } else {
         this.firstSelectionValue = undefined;
       }
@@ -181,29 +182,58 @@ function init() {
       this.togglePlayer();
       // remove the firstSelection key value...
       this.firstSelectionValue = undefined;
-      this.findPieces(this.activePlayer, this.board);
+      this.activePlayer.pieces = this.returnBoardPieces(
+        this.activePlayer.colour,
+        this.board
+      );
+      // find moves for each piece
       this.activePlayer.pieces.forEach((piece) =>
         this.choosePieceFunction(this.activePlayer, this.inactivePlayer, piece)
       );
+      //
       this.activePlayer.pieces.forEach((piece) => {
-        piece.moves.forEach((move) => {
-          this.inactivePlayer.pieces = [];
-          this.findPieces(this.inactivePlayer, move.board);
-          this.inactivePlayer.pieces.forEach((move) =>
-            this.choosePieceFunction(
-              this.inactivePlayer,
-              this.activePlayer,
-              move
-            )
-          );
-          move.moves = this.inactivePlayer.pieces;
-        });
+        this.subsequentActiveMoves(piece);
       });
+      //
+      this.activePlayer.pieces.forEach((piece) => {
+        this.subsequentInactiveMoves(piece);
+      });
+      //
+      this.activePlayer.pieces.forEach((piece) => {
+        this.legalMoves(piece);
+      });
+
       this.highlightActivePlayer();
-      this.legalMoves();
       this.result(this.activePlayer);
       console.log(Game);
     }
+    subsequentActiveMoves(piece) {
+      piece.moves.forEach((move) => {
+        let inactivePieces = [];
+        inactivePieces = this.returnBoardPieces(
+          this.inactivePlayer.colour,
+          move.board
+        );
+        inactivePieces.forEach((move) =>
+          this.choosePieceFunction(this.inactivePlayer, this.activePlayer, move)
+        );
+        move.inactiveMoves = inactivePieces;
+      });
+    }
+    subsequentInactiveMoves(piece) {
+      piece.moves.forEach((move) => {
+        let activePieces = [];
+        activePieces = this.returnBoardPieces(
+          this.activePlayer.colour,
+          move.board
+        );
+        activePieces.forEach((move) =>
+          this.choosePieceFunction(this.activePlayer, this.inactivePlayer, move)
+        );
+        move.activeMoves = activePieces;
+      });
+    }
+    // Find a move from the active player pieces and return it.
     returnMove(start, finish) {
       let piece = this.activePlayer.pieces.filter((piece) => {
         // console.log(`(RANK: ${piece.rank}, FILE: ${piece.file})`);
@@ -228,51 +258,75 @@ function init() {
       this.lastMove = move;
     }
     //
-    legalMoves() {
-      this.activePlayer.pieces.forEach((piece) => {
-        // console.log(piece.moves);
-        piece.legalMoves = piece.moves.filter((activeMove) => {
-          return activeMove.moves.every((inactiveMoves) => {
-            return inactiveMoves.moves.every((inactiveMove) => {
-              // console.log(inactiveMove.check);
-              return !inactiveMove.check;
-            });
+    legalMoves(piece) {
+      // make a legal moves property which contains all piece moves...
+      piece.legalMoves = piece.moves.filter((firstMove) => {
+        // where every move by that piece
+        return firstMove.inactiveMoves.every((inactivePiece) => {
+          // would have every opposition piece
+          return inactivePiece.moves.every((inactiveMove) => {
+            // with everyone one of its moves
+            return !inactiveMove.check;
           });
         });
       });
     }
     //
+    // checkMoves(pieces) {
+    //   pieces.forEach((piece) => {
+    //     // console.log(piece.moves);
+    //     piece.checkMoves = piece.moves.filter((firstMove) => {
+    //       return firstMove.moves.every((piece) => {
+    //         return piece.moves.every((secondMove) => {
+    //           // console.log(inactiveMove.check);
+    //           return !secondMove.check;
+    //         });
+    //       });
+    //     });
+    //   });
+    // }
+    //
     result(player) {
       //
-      if (
-        this.activePlayer.pieces.every((piece) => {
-          return piece.legalMoves.length === piece.moves.length;
-        })
-      ) {
-        player.inCheck = false;
-        console.log("NOTHING TO NOTE.");
-      } else {
-        player.inCheck = true;
-        console.log("CHECK!");
-        document
-          .querySelector(`[data-piece="${this.activePlayer.colour}K"]`)
-          .parentElement.classList.add("check");
-      }
-      //
-      if (
-        this.activePlayer.pieces.every((piece) => {
-          return piece.legalMoves.length === 0;
-        })
-      ) {
-        if (player.inCheck) {
+      if (this.lastMove) {
+        if (
+          this.lastMove.activeMoves.some((activeMove) => {
+            return activeMove.moves.some((move) => {
+              return move.check;
+            });
+          })
+        ) {
+          // Player in Check
+          player.inCheck = true;
+          console.log(`CHECK! ${this.activePlayer.colour}K`);
           document
             .querySelector(`[data-piece="${this.activePlayer.colour}K"]`)
             .parentElement.classList.add("check");
-          console.log("CHECKMATE!");
-          this.resultModal(`Checkmate! ${this.inactivePlayer.name} Wins!`);
+          // Can player make any legal moves
+          if (
+            this.activePlayer.pieces.every((piece) => {
+              return piece.legalMoves.length === 0;
+            })
+          ) {
+            document
+              .querySelector(`[data-piece="${this.activePlayer.colour}K"]`)
+              .parentElement.classList.add("check");
+            console.log("CHECKMATE!");
+            this.resultModal(`Checkmate! ${this.inactivePlayer.name} Wins!`);
+          }
         } else {
-          console.log("STALEMATE!");
-          this.resultModal("Stalemate! It's a draw...");
+          // Player not in check
+          player.inCheck = false;
+          console.log("NOTHING TO NOTE.");
+          // can player make any legal moves
+          if (
+            this.activePlayer.pieces.every((piece) => {
+              return piece.legalMoves.length === 0;
+            })
+          ) {
+            console.log("STALEMATE!");
+            this.resultModal("Stalemate! It's a draw...");
+          }
         }
       }
     }
@@ -293,16 +347,12 @@ function init() {
       this.activePlayer = this.inactivePlayer;
       this.inactivePlayer = middleMan;
     }
-    // refactor with forEach & filter
-    findPieces(player, board) {
-      player.pieces = [];
-      // loop over ranks
+    returnBoardPieces(colour, board) {
+      let pieceArray = [];
       for (let rank = 0; rank < 8; rank++) {
-        // loop over columns
         for (let file = 0; file < 8; file++) {
-          // if piece is the correct activePlayer.colour...
-          if (board[rank][file].includes(player.colour)) {
-            player.pieces.push({
+          if (board[rank][file].includes(colour)) {
+            pieceArray.push({
               rank: rank,
               file: file,
               piece: board[rank][file],
@@ -312,8 +362,8 @@ function init() {
           }
         }
       }
-      // console.log(player.pieces);
-      //   console.log(this.inactivePlayer.colour);
+      // console.log(pieceArray);
+      return pieceArray;
     }
     choosePieceFunction(activePlayer, inactivePlayer, piece) {
       if (piece.piece.includes("P")) {
@@ -342,14 +392,6 @@ function init() {
     }
     pawnPromotion(finish) {
       //
-      console.log(finish.dataset.rank);
-      console.log(finish.dataset.file);
-      console.log(this.board);
-      console.log(this.board[finish.dataset.rank][finish.dataset.file]);
-      console.log(
-        this.board[finish.dataset.rank][finish.dataset.file].includes("P")
-      );
-      console.log(finish.dataset.rank === "0" || finish.dataset.rank === "7");
       if (
         this.board[finish.dataset.rank][finish.dataset.file].includes("P") &&
         (finish.dataset.rank === "0" || finish.dataset.rank === "7")
@@ -376,7 +418,10 @@ function init() {
             // close modal
             promotionModalElement.style.display = "none";
             //
-            this.setupNextTurn();
+            this.lastMove.piece = piece;
+            this.subsequentActiveMoves(piece);
+            this.subsequentInactiveMoves(piece);
+            this.this.setupNextTurn();
           });
           promotionPieces.appendChild(promotionPiece);
         });
