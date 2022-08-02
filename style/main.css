@@ -103,7 +103,7 @@ h1 span {
     text-shadow: 0.75px 0.75px 1px rgba(255, 255, 255, .25);
 }
 
-#player1 {
+#w {
     align-self: flex-start;
     
     background: var(--colour-white);
@@ -112,7 +112,7 @@ h1 span {
     border-bottom-right-radius: 10px;
 }
 
-#player2 {
+#b {
     align-self: flex-end;
 
     background: var(--colour-black);

@@ -7,6 +7,7 @@ function init() {
       this.colour = colour;
       this.pieces = [];
       this.inCheck = false;
+      this.fiftyKingMoveCount = undefined;
     }
   }
 
@@ -16,6 +17,8 @@ function init() {
       this.inactivePlayer = player1;
       this.firstSelectionValue = undefined;
       this.lastMove = undefined;
+      this.previousBoards = [];
+      this.threeFoldRepetition = undefined;
       this.board = [
         ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
         ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
@@ -133,6 +136,7 @@ function init() {
             }
           });
           this.pawnPromotion(finish);
+          this.saveBoard(this.board);
         } else {
           this.firstSelectionValue = undefined;
         }
@@ -148,6 +152,7 @@ function init() {
           }
         });
         this.pawnPromotion(finish);
+        this.saveBoard(this.board);
       } else {
         this.firstSelectionValue = undefined;
       }
@@ -233,23 +238,13 @@ function init() {
         move.activeMoves = activePieces;
       });
     }
-    // Find a move from the active player pieces and return it.
     returnMove(start, finish) {
       let piece = this.activePlayer.pieces.filter((piece) => {
-        // console.log(`(RANK: ${piece.rank}, FILE: ${piece.file})`);
-        // console.log(
-        //   `(RANK: ${start.dataset.rank}, FILE: ${start.dataset.file})`
-        // );
         return (
           piece.rank == start.dataset.rank && piece.file == start.dataset.file
         );
       })[0];
-      // console.log(piece);
       let move = piece.legalMoves.filter((legalMove) => {
-        // console.log(`(RANK: ${legalMove.rank}, FILE: ${legalMove.file})`);
-        // console.log(
-        //   `(RANK: ${finish.dataset.rank}, FILE: ${finish.dataset.file})`
-        // );
         return (
           legalMove.rank == finish.dataset.rank &&
           legalMove.file == finish.dataset.file
@@ -257,35 +252,20 @@ function init() {
       })[0];
       this.lastMove = move;
     }
-    //
     legalMoves(piece) {
-      // make a legal moves property which contains all piece moves...
+      // make a legalMoves property which contains all piece moves...
       piece.legalMoves = piece.moves.filter((firstMove) => {
         // where every move by that piece
         return firstMove.inactiveMoves.every((inactivePiece) => {
-          // would have every opposition piece
+          // would have every subsequent opposition piece move
           return inactivePiece.moves.every((inactiveMove) => {
-            // with everyone one of its moves
+            // not able to capture the king
             return !inactiveMove.check;
           });
         });
       });
     }
-    //
-    // checkMoves(pieces) {
-    //   pieces.forEach((piece) => {
-    //     // console.log(piece.moves);
-    //     piece.checkMoves = piece.moves.filter((firstMove) => {
-    //       return firstMove.moves.every((piece) => {
-    //         return piece.moves.every((secondMove) => {
-    //           // console.log(inactiveMove.check);
-    //           return !secondMove.check;
-    //         });
-    //       });
-    //     });
-    //   });
-    // }
-    //
+    // NEED TO ADD 50KingMoves() & 3FoldRepetition().
     result(player) {
       //
       if (this.lastMove) {
@@ -312,7 +292,10 @@ function init() {
               .querySelector(`[data-piece="${this.activePlayer.colour}K"]`)
               .parentElement.classList.add("check");
             console.log("CHECKMATE!");
-            this.resultModal(`Checkmate! ${this.inactivePlayer.name} Wins!`);
+            this.resultModal(
+              `Checkmate! ${this.inactivePlayer.name} Wins!`,
+              "Refresh the page to play again."
+            );
           }
         } else {
           // Player not in check
@@ -325,23 +308,64 @@ function init() {
             })
           ) {
             console.log("STALEMATE!");
-            this.resultModal("Stalemate! It's a draw...");
+            this.resultModal(
+              "Stalemate! It's a draw...",
+              "Refresh the page to play again."
+            );
           }
+        }
+        //
+        if (this.threeFoldRepetition()) {
+          console.log("Three-Fold Repetition!");
+          this.resultModal(
+            "Three-Fold Repetition! It's a draw...",
+            "Refresh the page to play again."
+          );
+        }
+        //
+        if (this.activePlayer.fiftyKingMoveCount === 50) {
+          console.log("50 King Moves!");
+          this.resultModal(
+            "50 King Moves! It's a draw...",
+            "Refresh the page to play again."
+          );
         }
       }
     }
-    //
-    resultModal(title) {
+    saveBoard(board) {
+      let stringBoard = board.map((file) => file.join("-")).join("@");
+      console.log(stringBoard);
+      this.previousBoards.push(stringBoard);
+    }
+    threeFoldRepetition() {
+      let uniqueBoards = [...new Set(this.previousBoards)];
+      let repetitions = [];
+      // Don't bother unless any board has been repeated at least once
+      if (uniqueBoards.length < this.previousBoards.length + 1) {
+        return uniqueBoards.some((prevBoard) => {
+          let inst = this.previousBoards.filter((boardString) => {
+            boardString === prevBoard;
+          });
+          return inst > 2;
+        });
+      }
+    }
+    fiftyKingMoves() {
+      // this.activePlayer.pieces.
+      // if () {}
+    }
+    resultModal(title, message) {
       const resultModalElement = document.getElementById("result-modal");
       const resultModalTitle = document.querySelector("#result-modal h2");
-      // const resultModalMessage = document.querySelector("#result-modal h2");
+      resultModalTitle.textContent = title;
+      const resultModalMessage = document.querySelector("#result-modal p");
+      resultModalMessage.textContent = message;
       const resultModalButton = document.querySelector("#result-modal button");
       resultModalButton.addEventListener("click", () => {
         resultModalElement.style.display = "none";
       });
       resultModalElement.style.display = "flex";
     }
-    // rewritten function - needs updating elsewhere
     togglePlayer() {
       let middleMan = this.activePlayer;
       this.activePlayer = this.inactivePlayer;
@@ -380,15 +404,18 @@ function init() {
         this.king(activePlayer, inactivePlayer, piece);
       }
     }
-    // this could be refactored - access dom with w & b
     highlightActivePlayer() {
-      if (this.activePlayer.colour === "w") {
-        document.getElementById("player1").classList.add("active");
-        document.getElementById("player2").classList.remove("active");
-      } else if (this.activePlayer.colour === "b") {
-        document.getElementById("player1").classList.remove("active");
-        document.getElementById("player2").classList.add("active");
-      }
+      // if (this.activePlayer.colour === "w") {
+      //   document.getElementById("player1").classList.add("active");
+      //   document.getElementById("player2").classList.remove("active");
+      // } else if (this.activePlayer.colour === "b") {
+      //   document.getElementById("player1").classList.remove("active");
+      //   document.getElementById("player2").classList.add("active");
+      // }
+      document.getElementById(this.activePlayer.colour).classList.add("active");
+      document
+        .getElementById(this.inactivePlayer.colour)
+        .classList.remove("active");
     }
     pawnPromotion(finish) {
       //

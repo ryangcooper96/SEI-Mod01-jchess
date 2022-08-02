@@ -19,7 +19,7 @@ chess over 1500 years old, 2020 great resurgence, twitch
 - [x] Stalemate
 - [] 50 moves
 - [] repeat same 3 moves
-- [] change check conditions
+- [x] change check conditions
 <br>
 <br>
 new check conditions... need to have checkMoves as well as legalMoves
