@@ -415,13 +415,21 @@ function init() {
             document.querySelector(
               `[data-rank="${finish.dataset.rank}"][data-file="${finish.dataset.file}"]`
             ).innerHTML = `<img width="40px" height="60px" data-rank="${finish.dataset.rank}" data-file="${finish.dataset.file}" data-piece="${piece}" src="./Chess-pieces/${piece}.png">`;
+            // remove piece images from modal
+            promotionPieces.innerHTML = "";
             // close modal
             promotionModalElement.style.display = "none";
             //
             this.lastMove.piece = piece;
-            this.subsequentActiveMoves(piece);
-            this.subsequentInactiveMoves(piece);
-            this.this.setupNextTurn();
+            this.choosePieceFunction(
+              this.activePlayer,
+              this.inactivePlayer,
+              this.lastMove
+            );
+            this.subsequentActiveMoves(this.lastMove);
+            this.subsequentInactiveMoves(this.lastMove);
+            this.legalMoves(this.lastMove);
+            this.setupNextTurn();
           });
           promotionPieces.appendChild(promotionPiece);
         });
@@ -507,7 +515,7 @@ function init() {
         if (this.boundaryBottom(element, 1) && this.boundaryRight(element, 1)) {
           if (
             this.isKing(
-              this.boardLocation(element, 1, 1),
+              this.boardLocation(element, 1, 1, true),
               inactivePlayer.colour
             )
           ) {
