@@ -18,7 +18,6 @@ function init() {
       this.firstSelectionValue = undefined;
       this.lastMove = undefined;
       this.previousBoards = [];
-      this.threeFoldRepetition = undefined;
       this.board = [
         ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
         ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
@@ -322,7 +321,7 @@ function init() {
             "Refresh the page to play again."
           );
         }
-        //
+        this.fiftyKingMoves();
         if (this.activePlayer.fiftyKingMoveCount === 50) {
           console.log("50 King Moves!");
           this.resultModal(
@@ -339,19 +338,29 @@ function init() {
     }
     threeFoldRepetition() {
       let uniqueBoards = [...new Set(this.previousBoards)];
-      let repetitions = [];
       // Don't bother unless any board has been repeated at least once
       if (uniqueBoards.length < this.previousBoards.length + 1) {
         return uniqueBoards.some((prevBoard) => {
           let inst = this.previousBoards.filter((boardString) => {
             boardString === prevBoard;
           });
-          return inst > 2;
+          return inst.length > 2;
         });
       }
     }
     fiftyKingMoves() {
-      // this.activePlayer.pieces.
+      let nonKingPieces = this.activePlayer.pieces.filter((piece) => {
+        return !piece.piece.includes("K");
+      });
+      if (
+        nonKingPieces.some((piece) => {
+          return piece.legalMoves.length > 0;
+        })
+      ) {
+        this.activePlayer.fiftyKingMoveCount = 0;
+      } else {
+        this.activePlayer.fiftyKingMoveCount++;
+      }
       // if () {}
     }
     resultModal(title, message) {
