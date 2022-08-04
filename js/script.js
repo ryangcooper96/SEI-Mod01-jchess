@@ -64,7 +64,7 @@ function init() {
           square.addEventListener("click", (e) => this.selectionHandler(e));
           // add piece
           if (this.board[rank][file]) {
-            square.innerHTML = `<img width="40px" height="60px" data-rank="${rank}" data-file="${file}" data-piece="${this.board[rank][file]}" src="./Chess-pieces/${this.board[rank][file]}.png">`;
+            square.innerHTML = `<img width="40px" height="60px" data-rank="${rank}" data-file="${file}" data-piece="${this.board[rank][file]}" data-moveCount="0" src="./Chess-pieces/${this.board[rank][file]}.png">`;
           }
           // add square to board
           this.boardHTML.appendChild(square);
@@ -165,7 +165,13 @@ function init() {
       this.board[start.dataset.rank][start.dataset.file] = "";
 
       // add piece img-html to new position...
-      finish.innerHTML = `<img width="40px" height="60px" data-rank="${finish.dataset.rank}" data-file="${finish.dataset.file}" data-piece="${start.firstChild.dataset.piece}" src="./Chess-pieces/${start.firstChild.dataset.piece}.png">`;
+      finish.innerHTML = `<img width="40px" height="60px" data-rank="${
+        finish.dataset.rank
+      }" data-file="${finish.dataset.file}" data-piece="${
+        start.firstChild.dataset.piece
+      }" data-moveCount="${
+        parseInt(start.firstChild.dataset.movecount) + 1
+      }" src="./Chess-pieces/${start.firstChild.dataset.piece}.png">`;
 
       // remove piece img-html from old position...
       start.innerHTML = "";
@@ -186,10 +192,19 @@ function init() {
       this.togglePlayer();
       // remove the firstSelection key value...
       this.firstSelectionValue = undefined;
+      // return an array of all of one player's pieces
       this.activePlayer.pieces = this.returnBoardPieces(
         this.activePlayer.colour,
         this.board
       );
+      // add the number of moves that a piece has made to all the active player's pieces
+      this.activePlayer.pieces.forEach((piece) => {
+        piece.moveCount = parseInt(
+          document.querySelector(
+            `[data-rank="${piece.rank}"][data-file="${piece.file}"][data-piece="${piece.piece}"]`
+          ).dataset.movecount
+        );
+      });
       // find moves for each piece
       this.activePlayer.pieces.forEach((piece) =>
         this.choosePieceFunction(this.activePlayer, this.inactivePlayer, piece)
@@ -218,6 +233,13 @@ function init() {
           this.inactivePlayer.colour,
           move.board
         );
+        inactivePieces.forEach((piece) => {
+          piece.moveCount = parseInt(
+            document.querySelector(
+              `[data-rank="${piece.rank}"][data-file="${piece.file}"][data-piece="${piece.piece}"]`
+            ).dataset.movecount
+          );
+        });
         inactivePieces.forEach((move) =>
           this.choosePieceFunction(this.inactivePlayer, this.activePlayer, move)
         );
@@ -333,7 +355,7 @@ function init() {
     }
     saveBoard(board) {
       let stringBoard = board.map((file) => file.join("-")).join("@");
-      console.log(stringBoard);
+      // console.log(stringBoard);
       this.previousBoards.push(stringBoard);
     }
     threeFoldRepetition() {
@@ -391,6 +413,7 @@ function init() {
               piece: board[rank][file],
               moves: [],
               board: board,
+              // moveCount:
             });
           }
         }
@@ -450,7 +473,7 @@ function init() {
             // update DOM board
             document.querySelector(
               `[data-rank="${finish.dataset.rank}"][data-file="${finish.dataset.file}"]`
-            ).innerHTML = `<img width="40px" height="60px" data-rank="${finish.dataset.rank}" data-file="${finish.dataset.file}" data-piece="${piece}" src="./Chess-pieces/${piece}.png">`;
+            ).innerHTML = `<img width="40px" height="60px" data-rank="${finish.dataset.rank}" data-file="${finish.dataset.file}" data-piece="${piece}" data-moveCount="${finish.dataset.moves}" src="./Chess-pieces/${piece}.png">`;
             // remove piece images from modal
             promotionPieces.innerHTML = "";
             // close modal
@@ -566,6 +589,12 @@ function init() {
           }
         }
       }
+    }
+    enPassant(activePlayer, inactivePlayer, element) {
+      // last move - is a pawn
+      // last move - is adjacent to current pawn (same rank) black - rank 5, white - rank 4;
+      // last move - has made no previous moves before this one
+      this.lastMove.piece.includes("P") && this.lastMove.moveCount === 0;
     }
     rook(activePlayer, inactivePlayer, element) {
       // loop for ranks + columns
@@ -684,6 +713,7 @@ function init() {
         }
       }
     }
+    castling(activePlayer, inactivePlayer, element) {}
     knight(activePlayer, inactivePlayer, element) {
       const knightMoves = [
         { rank: 1, file: 2 },
@@ -899,7 +929,6 @@ function init() {
       tempBoard[element.rank + i][element.file + j] =
         this.board[element.rank][element.file];
       tempBoard[element.rank][element.file] = "";
-      //
       element.moves.push({
         rank: element.rank + i,
         file: element.file + j,
@@ -907,8 +936,10 @@ function init() {
         moves: [],
         board: tempBoard,
         check: check,
+        moveCount: element.moveCount + 1,
       });
     }
+    getMoveCount() {}
     boundaryLeft(element, move) {
       return element.file + move > -1;
     }

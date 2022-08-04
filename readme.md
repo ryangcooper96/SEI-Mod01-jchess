@@ -1,6 +1,33 @@
 # Chess
 ---
-chess over 1500 years old, 2020 great resurgence, twitch 
+## Introduction 
+---
+chess over 1500 years old, 2020 great resurgence, twitch
+<br>
+<br>
+
+### Further Development
+---
+before going into any great detail about how this code has been developed, I would like to present the case for further development. My aim was to develop this program in such a way that these developments were possible.
+- The addition of a CPU
+- The ability to play multiplayer over a local, or wide area network.
+
+## Deployment
+---
+<br>
+<br>
+
+## Project Specification
+---
+<br>
+<br>
+
+## Planning
+--
+<br>
+<br>
+
+
 ## To-Do:
 ---
 - [ ] Responsive Design - Mobile Friendly
@@ -17,16 +44,29 @@ chess over 1500 years old, 2020 great resurgence, twitch
 - [X] In check
 - [x] Checkmate
 - [x] Stalemate
-- [] 50 moves
-- [] repeat same 3 moves
+- [x] 50 moves
+- [x] repeat same 3 moves
 - [x] change check conditions
 <br>
 <br>
-new check conditions... need to have checkMoves as well as legalMoves
 
-
-## The `Chess` Object
+## Code Process
 ---
+Setting up a game
+playing a game
+<br>
+<br>
+
+## The `Chess` Class
+---
+the `Chess` Class takes in two arguments; `player1` & `player2`; via the constructor method, and are applied to the `activePlayer` and `inactivePlayer` properties when a new object is created. During play these two properties will alternate the player they are assigned to as we alternate between player turns.
+
+Other properties include:
+- `firstSelectionValue` which will take the value of the DOM element targeted by a player's "click" or "touch" from event listeners applied to each board square. As each turn will require two inputs from a player, this property acts as a holding variable - this will be expanded on in the `selectionHandler()` function description.
+- `lastMove` which holds the previous player's move. A certain requirement when determining some future moves.
+- `previousBoards` holds all the previous boards, or piece positions, a necessity for determining the three-fold repetition stalemate ruling.
+- `board` displays the current piece positions on the board in the form of an array containing 8 arrays representing each rank and 8 elements representing each file on that rank.
+
 <br>
 <br>
 
