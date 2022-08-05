@@ -15,15 +15,22 @@
     <main>
         <section id="game">
             <div class="modal" id="settings-modal">
-                <h2></h2>
+                <h2>Game Settings</h2>
+                <form action="">
+                    <label for="b-name-input"></label>
+                    <input id="b-name-input" type="text" placeholder="Name">
+                    <label for="w-name-input"></label>
+                    <input id="w-name-input" type="text" placeholder="Name">
+                    <button type="submit"></button>
+                </form>
                 <p></p>
             </div>
-            <div id="result-modal">
+            <div class="modal" id="result-modal">
                 <h2>Display Message</h2>
                 <p>Something has happened</p>
                 <button>ok</button>
             </div>
-            <div id="promotion-modal">
+            <div class="modal" id="promotion-modal">
                 <h2>Pawn Promotion</h2>
                 <p>Please select a piece</p>
                 <div id="promotion-pieces"></div>

@@ -183,16 +183,52 @@ function init() {
 
       // remove piece img-html from old position...
       start.innerHTML = "";
+
+      // en Passant capture
+      if (this.lastMove.enPassant) {
+        console.log(this.lastMove.enPassant);
+        if (this.lastMove.piece.includes("w")) {
+          // remove captured piece image
+          document.querySelector(
+            `[data-rank="${parseInt(finish.dataset.rank) + 1}"][data-file="${
+              finish.dataset.file
+            }"]`
+          ).innerHTML = "";
+          // remove captured piece from board array
+          this.board[parseInt(finish.dataset.rank) + 1][finish.dataset.file] =
+            "";
+        } else if (this.lastMove.piece.includes("b")) {
+          // remove captured piece image
+          document.querySelector(
+            `[data-rank="${parseInt(finish.dataset.rank) - 1}"][data-file="${
+              finish.dataset.file
+            }"]`
+          ).innerHTML = "";
+          this.board[parseInt(finish.dataset.rank) - 1][finish.dataset.file] =
+            "";
+          // remove captured piece from board array
+        }
+      }
     }
     addCapturedPiece(finish) {
       if (this.activePlayer.colour === "w") {
         document.getElementById(
           "w-captured"
         ).innerHTML += `<img width="30px" height="45px" src="./Chess-pieces/${finish.dataset.piece}.png">`;
+        if (this.lastMove.enPassant) {
+          document.getElementById(
+            "w-captured"
+          ).innerHTML += `<img width="30px" height="45px" src="./Chess-pieces/bP.png">`;
+        }
       } else if (this.activePlayer.colour === "b") {
         document.getElementById(
           "b-captured"
         ).innerHTML += `<img width="30px" height="45px" src="./Chess-pieces/${finish.dataset.piece}.png">`;
+        if (this.lastMove.enPassant) {
+          document.getElementById(
+            "b-captured"
+          ).innerHTML += `<img width="30px" height="45px" src="./Chess-pieces/wP.png">`;
+        }
       }
     }
     setupNextTurn() {
@@ -640,14 +676,14 @@ function init() {
               element.rank === 4 &&
               this.lastMove.rank === 4
             ) {
-              this.pushMove(element, 1, 1);
+              this.pushMove(element, 1, 1, false, true);
               // if the last move was a black pawn moved to the same rank as this piece
             } else if (
               this.lastMove.piece.includes("bP") &&
               element.rank === 3 &&
               this.lastMove.rank === 3
             ) {
-              this.pushMove(element, -1, 1);
+              this.pushMove(element, -1, 1, false, true);
             }
             // if the last move was to an adjacent file - left
           } else if (element.file - 1 === this.lastMove.file) {
@@ -657,14 +693,14 @@ function init() {
               element.rank === 4 &&
               this.lastMove.rank === 4
             ) {
-              this.pushMove(element, 1, -1);
+              this.pushMove(element, 1, -1, false, true);
               // if the last move was a black pawn moved to the same rank as this piece
             } else if (
               this.lastMove.piece.includes("bP") &&
               element.rank === 3 &&
               this.lastMove.rank === 3
             ) {
-              this.pushMove(element, -1, -1);
+              this.pushMove(element, -1, -1, false, true);
             }
           }
         }
@@ -998,7 +1034,7 @@ function init() {
     boardLocation(element, i, j) {
       return element.board[element.rank + i][element.file + j];
     }
-    pushMove(element, i, j, check = false) {
+    pushMove(element, i, j, check = false, enPassant = false) {
       const tempBoard = [...element.board].map((file) => [...file]);
       tempBoard[element.rank + i][element.file + j] =
         this.board[element.rank][element.file];
@@ -1011,6 +1047,7 @@ function init() {
         board: tempBoard,
         check: check,
         moveCount: element.moveCount + 1,
+        enPassant: enPassant,
       });
     }
     boundaryLeft(element, move) {
