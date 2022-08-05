@@ -62,7 +62,7 @@ function init() {
           square.setAttribute("data-file", file);
           // add event listener
           square.addEventListener("click", (e) => this.selectionHandler(e));
-          // add piece
+          // add piece image
           if (this.board[rank][file]) {
             square.innerHTML = `<img width="40px" height="60px" data-rank="${rank}" data-file="${file}" data-piece="${this.board[rank][file]}" data-moveCount="0" src="./Chess-pieces/${this.board[rank][file]}.png">`;
           }
@@ -72,13 +72,13 @@ function init() {
       }
     }
     selectionHandler(e) {
-      // console.log("selectionHandler();");
+      // if player has not yet made a first selection
       if (!this.firstSelectionValue) {
         this.firstSelection(e.target);
       } else {
-        // if firstSelection square is "highlighted" - is a viable move (has class of highlight)...
+        // if player has made a first selection
         this.secondSelection(this.firstSelectionValue, e.target);
-        // remove highlight class if it exists (clean up!)
+        // remove highlight class from relevant board squares
         document.querySelectorAll(".square").forEach((square) => {
           if (square.classList.contains("highlight")) {
             square.classList.remove("highlight");
@@ -86,18 +86,21 @@ function init() {
         });
       }
     }
-    firstSelection(finish) {
+    firstSelection(start) {
+      // for each of the player's pieces
       this.activePlayer.pieces.forEach((piece) => {
-        if (piece.rank === parseInt(finish.dataset.rank)) {
-          if (piece.file === parseInt(finish.dataset.file)) {
-            // add the firstSelection square DOM element to the firstSelection key value
+        // if the player's selection is one of their pieces
+        if (piece.rank === parseInt(start.dataset.rank)) {
+          if (piece.file === parseInt(start.dataset.file)) {
+            // assign the DOM element to the firstSelection property
             this.firstSelectionValue = document.querySelector(
               `[data-rank='${piece.rank}'][data-file='${piece.file}']`
             );
-            // highlight the firstSelection square
+            // highlight the selected square
             this.firstSelectionValue.classList.add("highlight");
             // highlight the squares of all feasible moves for that piece
             piece.legalMoves.forEach((square) => {
+              // if the selected square contains a piece
               if (
                 document
                   .querySelector(
@@ -625,28 +628,44 @@ function init() {
       }
     }
     enPassant(activePlayer, inactivePlayer, element) {
-      // last move - is a pawn
-      // last move - is adjacent to current pawn (same rank) black - rank 5, white - rank 4;
-      // last move - has made no previous moves before this one
+      // if last move exists - not the first go
       if (this.lastMove) {
-        if (
-          this.lastMove.moveCount === 1 &&
-          (element.file + 1 === this.lastMove.file ||
-            element.file - 1 === this.lastMove.file)
-        ) {
-          console.log("partway");
-          if (
-            this.lastMove.piece.includes("wP") &&
-            element.rank === 4 &&
-            this.lastMove.rank === 4
-          ) {
-            console.log("EN PASSANT!!");
-          } else if (
-            this.lastMove.piece.includes("bP") &&
-            element.rank === 3 &&
-            this.lastMove.rank === 3
-          ) {
-            console.log("EN PASSANT!!");
+        // if the last move was a pieces first move
+        if (this.lastMove.moveCount === 1) {
+          // if the last move was to an adjacent file - right
+          if (element.file + 1 === this.lastMove.file) {
+            // if the last move was a white pawn moved to same rank as this piece
+            if (
+              this.lastMove.piece.includes("wP") &&
+              element.rank === 4 &&
+              this.lastMove.rank === 4
+            ) {
+              this.pushMove(element, 1, 1);
+              // if the last move was a black pawn moved to the same rank as this piece
+            } else if (
+              this.lastMove.piece.includes("bP") &&
+              element.rank === 3 &&
+              this.lastMove.rank === 3
+            ) {
+              this.pushMove(element, -1, 1);
+            }
+            // if the last move was to an adjacent file - left
+          } else if (element.file - 1 === this.lastMove.file) {
+            // if the last move was a white pawn moved to same rank as this piece
+            if (
+              this.lastMove.piece.includes("wP") &&
+              element.rank === 4 &&
+              this.lastMove.rank === 4
+            ) {
+              this.pushMove(element, 1, -1);
+              // if the last move was a black pawn moved to the same rank as this piece
+            } else if (
+              this.lastMove.piece.includes("bP") &&
+              element.rank === 3 &&
+              this.lastMove.rank === 3
+            ) {
+              this.pushMove(element, -1, -1);
+            }
           }
         }
       }

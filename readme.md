@@ -38,7 +38,7 @@ before going into any great detail about how this code has been developed, I wou
 - [x] Highlight active player
 - [x] Pawn Promotion
 - [x] Pawn moves two on first move
-- [ ] en Passant
+- [x] en Passant
 - [ ] Castling
 - [x] Display captured pieces
 - [X] In check
