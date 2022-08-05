@@ -164,8 +164,13 @@ function init() {
       // remove old position of piece from board array
       this.board[start.dataset.rank][start.dataset.file] = "";
 
+      let imgClass = "";
+      if (start.firstChild.dataset.piece.includes("b")) {
+        imgClass = `class="rotate" `;
+      }
+
       // add piece img-html to new position...
-      finish.innerHTML = `<img width="40px" height="60px" data-rank="${
+      finish.innerHTML = `<img width="40px" ${imgClass}height="60px" data-rank="${
         finish.dataset.rank
       }" data-file="${finish.dataset.file}" data-piece="${
         start.firstChild.dataset.piece
@@ -179,11 +184,11 @@ function init() {
     addCapturedPiece(finish) {
       if (this.activePlayer.colour === "w") {
         document.getElementById(
-          "player1-captured"
+          "w-captured"
         ).innerHTML += `<img width="30px" height="45px" src="./Chess-pieces/${finish.dataset.piece}.png">`;
       } else if (this.activePlayer.colour === "b") {
         document.getElementById(
-          "player2-captured"
+          "b-captured"
         ).innerHTML += `<img width="30px" height="45px" src="./Chess-pieces/${finish.dataset.piece}.png">`;
       }
     }
@@ -401,6 +406,33 @@ function init() {
       let middleMan = this.activePlayer;
       this.activePlayer = this.inactivePlayer;
       this.inactivePlayer = middleMan;
+
+      // reverse flex-direction of ranks and files
+      if (this.activePlayer.colour === "w") {
+        document.getElementById("board-squares").classList.remove("rotate");
+        document.querySelectorAll("#board-squares img").forEach((img) => {
+          img.classList.remove("rotate");
+        });
+        document.getElementById("game").style.flexFlow = "column wrap";
+        // document
+        //   .querySelectorAll(".ranks")
+        //   .forEach((rank) => (rank.style.flexFlow = "column wrap"));
+        // document
+        //   .querySelectorAll(".files")
+        //   .forEach((files) => (files.style.flexFlow = "row wrap"));
+      } else if (this.activePlayer.colour === "b") {
+        document.getElementById("board-squares").classList.add("rotate");
+        document.querySelectorAll("#board-squares img").forEach((img) => {
+          img.classList.add("rotate");
+        });
+        document.getElementById("game").style.flexFlow = "column-reverse wrap";
+        // document
+        //   .querySelectorAll(".ranks")
+        //   .forEach((rank) => (rank.style.flexFlow = "column-reverse wrap"));
+        // document
+        //   .querySelectorAll(".files")
+        //   .forEach((files) => (files.style.flexFlow = "row-reverse wrap"));
+      }
     }
     returnBoardPieces(colour, board) {
       let pieceArray = [];
@@ -500,6 +532,7 @@ function init() {
     }
     pawn(activePlayer, inactivePlayer, element) {
       if (element.piece.includes("w")) {
+        this.enPassant(activePlayer, inactivePlayer, element);
         if (element.rank - 2 === 4) {
           if (
             this.isEmpty(this.boardLocation(element, -1, 0)) &&
@@ -548,6 +581,7 @@ function init() {
           }
         }
       } else if (element.piece.includes("b")) {
+        this.enPassant(activePlayer, inactivePlayer, element);
         if (element.rank + 2 === 3) {
           if (
             this.isEmpty(this.boardLocation(element, +1, 0)) &&
@@ -594,7 +628,28 @@ function init() {
       // last move - is a pawn
       // last move - is adjacent to current pawn (same rank) black - rank 5, white - rank 4;
       // last move - has made no previous moves before this one
-      this.lastMove.piece.includes("P") && this.lastMove.moveCount === 0;
+      if (this.lastMove) {
+        if (
+          this.lastMove.moveCount === 1 &&
+          (element.file + 1 === this.lastMove.file ||
+            element.file - 1 === this.lastMove.file)
+        ) {
+          console.log("partway");
+          if (
+            this.lastMove.piece.includes("wP") &&
+            element.rank === 4 &&
+            this.lastMove.rank === 4
+          ) {
+            console.log("EN PASSANT!!");
+          } else if (
+            this.lastMove.piece.includes("bP") &&
+            element.rank === 3 &&
+            this.lastMove.rank === 3
+          ) {
+            console.log("EN PASSANT!!");
+          }
+        }
+      }
     }
     rook(activePlayer, inactivePlayer, element) {
       // loop for ranks + columns
@@ -939,7 +994,6 @@ function init() {
         moveCount: element.moveCount + 1,
       });
     }
-    getMoveCount() {}
     boundaryLeft(element, move) {
       return element.file + move > -1;
     }

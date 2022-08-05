@@ -1,37 +1,32 @@
-/* global variables */
+/* GLOBAL VARIABLES */
 :root {
     --colour-white: rgb(250, 235, 215);
     --colour-black: rgb(30, 30, 30);
     --colour-box-shadow: rgba(48, 48, 48, 0.3);
 }
 
-/* general styling */
+/* GENERAL STYLING */
 * {
     margin: 0;
     box-sizing: border-box;
 }
 
-/* media queries */
-
-/*  header */
+/*  HEADER */
 header {
     border-bottom: 4px solid silver;
     padding: 5px 35px;
 }
-
 h1 {
     display: inline;
     font-size: xxx-large;
     color: var(--colour-black);
 }
-
 h1 span {
     font-size: xx-large;
-    /* color: var(--colour-white); */
 }
 
 
-/* game */
+/* GAME GUI*/
 #game {
     display: flex;
     flex-flow: column nowrap;
@@ -41,9 +36,9 @@ h1 span {
     box-shadow: inset 0px 0px 150px 15px var(--colour-box-shadow);
 }
 
+/* GAME RESULT MODAL */
 #result-modal {
     display: none;
-    /* display: flex; */
     flex-direction: column;
     align-items: center;
     justify-content: space-around;
@@ -57,17 +52,13 @@ h1 span {
     left: 25%;
     top: 35%;
 
-    /* left: 250px;
-    top: 250px; */
-
-    background: rgb(30, 30, 30, 0.8);;
+    background: rgb(30, 30, 30, 0.8);
     color: var(--colour-white);
-    /* border: solid 2px var(--colour-white); */
 }
 
+/* PAWN PROMOTION MODAL */
 #promotion-modal {
     display: none;
-    /* display: flex; */
     flex-direction: column;
     align-items: center;
     justify-content: space-around;
@@ -80,54 +71,46 @@ h1 span {
 
     left: 25%;
     top: 35%;
-
-    /* left: 250px;
-    top: 250px; */
 
     background: rgb(30, 30, 30, 0.8);
     ;
     color: var(--colour-white);
-    /* border: solid 2px var(--colour-white); */
 }
 
 .player-info {
+    align-self: flex-start;
+
     display: flex;
     justify-content: space-between;
     align-items: center;
 
     height: 60px;
     width: 600px;
-    padding: 15px;
+    padding: 15px 25px;
 
     box-shadow: inset 2px 2px 25px 5px var(--colour-box-shadow);
     text-shadow: 0.75px 0.75px 1px rgba(255, 255, 255, .25);
-}
-
-#w {
-    align-self: flex-start;
-    
-    background: var(--colour-white);
-    color: var(--colour-black);
-
     border-bottom-right-radius: 10px;
 }
 
-#b {
-    align-self: flex-end;
+.player-name {
+    text-transform: capitalize;
+    font-weight: bold;
+    font-size: larger;
+}
 
+#w {
+    background: var(--colour-white);
+    color: var(--colour-black);
+}
+
+#b {
     background: var(--colour-black);
     color: var(--colour-white);
-
-    border-top-left-radius: 10px;
 }
 
 .player-captured {
     justify-self: flex-end;
-
-    /* add when all pieces have same baseline  
-    display: flex;
-    justify-content: flex-start;
-    align-items: flex-end; */
 }
 
 #board {
@@ -146,39 +129,43 @@ h1 span {
     font-size: 20px;
 }
 
+/* BOARD RANK ANNOTATIONS */
 .ranks {
     display: flex;
     flex-direction: column;
+    align-content: center;
     color: rgba(250, 235, 215, 0.75);
     width: 60px;
 }
-
 .ranks div {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 60px;
 }
+.rank-right div{
+    transform: rotate(180deg);
+}
 
+/* BOARD FILE ANNOTATIONS */
 .files {
     display: flex;
     flex-direction: row;
     height: 60px;
     color: rgba(250, 235, 215, 0.75);
 }
-
 .files div {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 50px;
+    height: 60px;
     width: 60px;
 }
-
-.files-top {
-    align-items: flex-end;
+.files-top div {
+    transform: rotate(180deg);
 }
 
+/* BOARD SQUARES */
 #board-squares {
     display: flex;
     flex-flow: row wrap;
@@ -191,7 +178,6 @@ h1 span {
     border: solid 2px rgba(250, 235, 215, 0.75);
     border-radius: 2px;
 }
-
 .square {
     display: flex;
     justify-content: center;
@@ -203,27 +189,27 @@ h1 span {
 
     box-shadow: inset 5px 5px 25px 10px rgba(48, 48, 48, 0.3);
 }
-
 .black {
     background: rgb(30, 30, 30);
 }
-
 .white {
     background: antiquewhite;
 }
 
+/* JAVASCRIPT ASSIGNED CLASSES */
 .highlight {
     box-shadow: inset 0px 0px 75px 75px rgba(80,170,30,0.9);
 }
-
 .active {
-    /* border: solid 3px rgba(80, 170, 30, 0.9); */
+    border-top-left-radius: 10px;
+    border-bottom-right-radius: 0px;
+    align-self: flex-end;
     box-shadow: inset 0px 0px 15px 3px rgba(80, 170, 30, 0.9);
-}
-
+} 
 .check {
     box-shadow: inset 0px 0px 75px 75px rgba(170, 30, 40, 0.9);
 }
+.rotate {
+    transform: rotate(180deg);
+}
 
-
-/* info */
