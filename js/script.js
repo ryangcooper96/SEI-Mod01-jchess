@@ -108,12 +108,14 @@ function init() {
                   )
                   .hasAttribute("data-piece")
               ) {
+                // add highlight class to the piece's parent element - board square
                 document
                   .querySelector(
                     `[data-rank='${square.rank}'][data-file='${square.file}']`
                   )
                   .parentElement.classList.add("highlight");
               } else {
+                // add highlight class to the board square
                 document
                   .querySelector(
                     `[data-rank='${square.rank}'][data-file='${square.file}']`
@@ -508,13 +510,6 @@ function init() {
       }
     }
     highlightActivePlayer() {
-      // if (this.activePlayer.colour === "w") {
-      //   document.getElementById("player1").classList.add("active");
-      //   document.getElementById("player2").classList.remove("active");
-      // } else if (this.activePlayer.colour === "b") {
-      //   document.getElementById("player1").classList.remove("active");
-      //   document.getElementById("player2").classList.add("active");
-      // }
       document.getElementById(this.activePlayer.colour).classList.add("active");
       document
         .getElementById(this.inactivePlayer.colour)
@@ -823,7 +818,16 @@ function init() {
         }
       }
     }
-    castling(activePlayer, inactivePlayer, element) {}
+    castling(activePlayer, inactivePlayer, element) {
+      //   // The king cannot be in check.
+      //   if (!this.activePlayer.inCheck) {
+      //     if () {
+      //     }
+      //   }
+      // The king and the rook may not have moved from their starting squares if you want to castle.
+      // All spaces between the king and the rook must be empty.
+      // The squares that the king passes over must not be under attack, nor the square where it lands on.
+    }
     knight(activePlayer, inactivePlayer, element) {
       const knightMoves = [
         { rank: 1, file: 2 },

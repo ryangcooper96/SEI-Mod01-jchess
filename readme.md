@@ -8,9 +8,14 @@ chess over 1500 years old, 2020 great resurgence, twitch
 
 ### Further Development
 ---
-before going into any great detail about how this code has been developed, I would like to present the case for further development. My aim was to develop this program in such a way that these developments were possible.
-- The addition of a CPU
-- The ability to play multiplayer over a local, or wide area network.
+Before going into any great detail about how this code has been developed, I would like to present the case for further development. My aim was to develop this program in such a way that the following developments were possible:
+
+- Castling.
+- Split the script.js file across more specific files.
+- A settings modal on loading of the page - option to set player names.
+- Display/log player moves in algebraic notation.
+- Responsive Design - CSS Breakpoints / Event Listeners for Mobile.
+- The addition of a CPU.
 
 ## Deployment
 ---
@@ -19,34 +24,32 @@ before going into any great detail about how this code has been developed, I wou
 
 ## Project Specification
 ---
+
 <br>
 <br>
 
 ## Planning
 --
+I decided to initially draw a wireframe of how I wanted this web app to display in both desktop and mobile. These can be seen below:
 <br>
-<br>
+It seemed sensible to first write down all the conditions for each pieces moves and the different result conditions to see what data would be required from turn to turn for operation of the game:
 
+- Pawn
+- Pawn Promotion
+- En Passant
+- Rook
+- Castling (NOT COMPLETED)
+- Knight
+- Bishop
+- Queen
+- King
+- Check
+- Checkmate
+- Stalemate
+- Fifty King Moves
+- Three Fold Repetition
 
-## To-Do:
----
-- [ ] Responsive Design - Mobile Friendly
-- [x] Display Winner Modal 
-- [ ] Game Settings
-- [ ] CPU
-- [ ] Display player moves in algebraic notation
-- [x] Highlight active player
-- [x] Pawn Promotion
-- [x] Pawn moves two on first move
-- [x] en Passant
-- [ ] Castling
-- [x] Display captured pieces
-- [X] In check
-- [x] Checkmate
-- [x] Stalemate
-- [x] 50 moves
-- [x] repeat same 3 moves
-- [x] change check conditions
+After evaluating all of these different conditions, it became apparent that a copy of the board would be essential - I opted for an array of 8 arrays, each of which had 8 elements, totalling our 64 squares.
 <br>
 <br>
 

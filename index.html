@@ -17,11 +17,17 @@
             <div class="modal" id="settings-modal">
                 <h2>Game Settings</h2>
                 <form action="">
-                    <label for="b-name-input"></label>
-                    <input id="b-name-input" type="text" placeholder="Name">
-                    <label for="w-name-input"></label>
-                    <input id="w-name-input" type="text" placeholder="Name">
-                    <button type="submit"></button>
+                    <div>
+                        <div>                        
+                            <label for="w-name-input">white</label>
+                            <input id="w-name-input" type="text" placeholder="Name">
+                        </div>
+                        <div>    
+                            <label for="b-name-input">black</label>
+                            <input id="b-name-input" type="text" placeholder="Name">
+                        </div>
+                    </div>
+                    <button type="submit"><img width="20px" height="30px" src="./chess-pieces/wQ.png">Play Game<img width="20px" height="30px" src="./chess-pieces/bK.png"></button>
                 </form>
                 <p></p>
             </div>
@@ -36,7 +42,7 @@
                 <div id="promotion-pieces"></div>
             </div>
             <div class="player-info" id="b">
-                <div class="player-name" id="b-name">Ryan</div>
+                <div class="player-name" id="b-name">Black</div>
                 <div class="player-captured" id="b-captured"></div>
             </div>
             <div id="board">
@@ -89,7 +95,7 @@
                 </div>
             </div>
             <div class="player-info" id="w">
-                <div class="player-name" id="w-name"> Burt</div>
+                <div class="player-name" id="w-name">White</div>
                 <div class="player-captured" id="w-captured"></div>
             </div>
         </section>
