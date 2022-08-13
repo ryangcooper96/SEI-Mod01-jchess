@@ -181,7 +181,7 @@ function init() {
         start.firstChild.dataset.piece
       }" data-moveCount="${
         parseInt(start.firstChild.dataset.movecount) + 1
-      }" src="./Chess-pieces/${start.firstChild.dataset.piece}.png">`;
+      }" src="chess-pieces/${start.firstChild.dataset.piece}.png">`;
 
       // remove piece img-html from old position...
       start.innerHTML = "";
@@ -216,20 +216,20 @@ function init() {
       if (this.activePlayer.colour === "w") {
         document.getElementById(
           "w-captured"
-        ).innerHTML += `<img width="30px" height="45px" src="./Chess-pieces/${finish.dataset.piece}.png">`;
+        ).innerHTML += `<img width="30px" height="45px" src="chess-pieces/${finish.dataset.piece}.png">`;
         if (this.lastMove.enPassant) {
           document.getElementById(
             "w-captured"
-          ).innerHTML += `<img width="30px" height="45px" src="./Chess-pieces/bP.png">`;
+          ).innerHTML += `<img width="30px" height="45px" src="chess-pieces/bP.png">`;
         }
       } else if (this.activePlayer.colour === "b") {
         document.getElementById(
           "b-captured"
-        ).innerHTML += `<img width="30px" height="45px" src="./Chess-pieces/${finish.dataset.piece}.png">`;
+        ).innerHTML += `<img width="30px" height="45px" src="chess-pieces/${finish.dataset.piece}.png">`;
         if (this.lastMove.enPassant) {
           document.getElementById(
             "b-captured"
-          ).innerHTML += `<img width="30px" height="45px" src="./Chess-pieces/wP.png">`;
+          ).innerHTML += `<img width="30px" height="45px" src="chess-pieces/wP.png">`;
         }
       }
     }
