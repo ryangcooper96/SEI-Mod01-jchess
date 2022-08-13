@@ -1,12 +1,17 @@
 # Chess
 ---
-## Introduction 
----
-chess over 1500 years old, 2020 great resurgence, twitch
+chess over 1500 years old.
+
+Tasked with creating a game for my first project, I opted for the game of chess. In the same way that it challenges your thinking whilst playing, I hoped (and was in no way disappointed) that programming the logic of the game would also provide its challenges.
 <br>
 <br>
 
-### Further Development
+## Deployment
+---
+<br>
+<br>
+
+## Further Development
 ---
 Before going into any great detail about how this code has been developed, I would like to present the case for further development. My aim was to develop this program in such a way that the following developments were possible:
 
@@ -17,16 +22,56 @@ Before going into any great detail about how this code has been developed, I wou
 - Responsive Design - CSS Breakpoints / Event Listeners for Mobile.
 - The addition of a CPU.
 
-## Deployment
+### Castling
+Unfortunately I have not yet found a solution to incorporate castling moves into this game, somewhat disappointing when all other functionality and game logic is in place. I fear due to the complex nature of the move that it may require the current... to be restructured.
+<br>
+<br>
+
+The conditions for castling moves are as follows:
+1. 
+2.
+3.
+4.
+<br>
+<br>
+
+### Splitting the File
 ---
 <br>
 <br>
+
+
+### Settings Modal
+---
+Ideally upon loading the site the user should be presented with the option to select certain settings, these option to set player's names, rotation of the board, rotation of the ranks, and the option to play against a CPU.
+<br>
+<br>
+
+
+### Move Display (Algebraic Notation)
+---
+A section aside of the game gui which would display players existing moves in algebraic chess notation.
+<br>
+<br>
+
+
+### Responsive Design - CSS Breakpoints / Event Listeners
+---
+<br>
+<br>
+
+
+### CPU Player
+---
+<br>
+<br>
+
 
 ## Project Specification
 ---
+<br>
+<br>
 
-<br>
-<br>
 
 ## Planning
 --

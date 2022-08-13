@@ -64,7 +64,7 @@ function init() {
           square.addEventListener("click", (e) => this.selectionHandler(e));
           // add piece image
           if (this.board[rank][file]) {
-            square.innerHTML = `<img width="40px" height="60px" data-rank="${rank}" data-file="${file}" data-piece="${this.board[rank][file]}" data-moveCount="0" src="/Chess-pieces/${this.board[rank][file]}.png">`;
+            square.innerHTML = `<img width="40px" height="60px" data-rank="${rank}" data-file="${file}" data-piece="${this.board[rank][file]}" data-moveCount="0" src="chess-pieces/${this.board[rank][file]}.png">`;
           }
           // add square to board
           this.boardHTML.appendChild(square);
