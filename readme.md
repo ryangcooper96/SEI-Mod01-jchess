@@ -1,29 +1,55 @@
-# Chess
+# jchess
 ---
-## Introduction 
----
-chess over 1500 years old, 2020 great resurgence, twitch
+Tasked with creating a game for my first project, I opted for the game of chess. In the same way that it challenges your thinking whilst playing, I hoped (and was in no way disappointed) that programming the logic of the game would also be challenging. 
 <br>
 <br>
-
-### Further Development
----
-Before going into any great detail about how this code has been developed, I would like to present the case for further development. My aim was to develop this program in such a way that the following developments were possible:
-
-- Castling.
-- Split the script.js file across more specific files.
-- A settings modal on loading of the page - option to set player names.
-- Display/log player moves in algebraic notation.
-- Responsive Design - CSS Breakpoints / Event Listeners for Mobile.
-- The addition of a CPU.
 
 ## Deployment
 ---
+The game is currently deployed on ‘GitHub Pages’ and can be accessed via this link:
+[https://bit.ly/rgc96-dep-jchess]
+
 <br>
 <br>
 
-## Project Specification
+## Code Installation
 ---
+You can also either ‘clone’ or ‘download’ the code from this repository and open the index.html in your preferred browser to start the game.
+
+<br>
+<br>
+
+## Timeframe & Project Brief
+---
+With two weeks of allotted course time for this project, I worked individually to develop this game.
+<br>
+
+### Technical Requirements:
+Your app must:
+- Render a game in the browser
+- Design logic for winning & visually display which player won
+- Include separate HTML / CSS / JavaScript files
+- Stick with KISS (Keep It Simple Stupid) and DRY (Don't Repeat Yourself) principles
+- Use Javascript for DOM manipulation
+- Deploy your game online, where the rest of the world can access it
+- Use semantic markup for HTML and CSS (adhere to best practices)
+<br>
+
+### Necessary Deliverables:
+- A working game, built by you, hosted somewhere on the internet
+- A link to your hosted working game in the URL section of your Github repo
+- A git repository hosted on Github, with a link to your hosted game, and frequent commits dating back to the very beginning of the project
+- A readme.md file with explanations of the technologies used, the approach taken, installation instructions, unsolved problems, etc.
+
+<br>
+<br>
+
+## Technologies
+---
+HTML5
+CSS3
+JavaScript
+Git / GitHub / GitHub Pages
 
 <br>
 <br>
