@@ -1,26 +1,14 @@
 # jchess
----
 Tasked with creating a game for my first project, I opted for the game of chess. In the same way that it challenges your thinking whilst playing, I hoped (and was in no way disappointed) that programming the logic of the game would also be challenging. 
-<br>
-<br>
 
 ## Deployment
----
 The game is currently deployed on ‘GitHub Pages’ and can be accessed via this link:
 [https://bit.ly/rgc96-dep-jchess]
 
-<br>
-<br>
-
 ## Code Installation
----
 You can also either ‘clone’ or ‘download’ the code from this repository and open the index.html in your preferred browser to start the game.
 
-<br>
-<br>
-
 ## Timeframe & Project Brief
----
 With two weeks of allotted course time for this project, I worked individually to develop this game.
 <br>
 
@@ -33,7 +21,6 @@ Your app must:
 - Use Javascript for DOM manipulation
 - Deploy your game online, where the rest of the world can access it
 - Use semantic markup for HTML and CSS (adhere to best practices)
-<br>
 
 ### Necessary Deliverables:
 - A working game, built by you, hosted somewhere on the internet
@@ -41,41 +28,25 @@ Your app must:
 - A git repository hosted on Github, with a link to your hosted game, and frequent commits dating back to the very beginning of the project
 - A readme.md file with explanations of the technologies used, the approach taken, installation instructions, unsolved problems, etc.
 
-<br>
-<br>
-
 ## Technologies
 ---
-HTML5
-CSS3
-JavaScript
-Git / GitHub / GitHub Pages
+- HTML5
+- CSS3
+- JavaScript
+- Git / GitHub / GitHub Pages
 
 <br>
 <br>
 
 ## Planning
 --
-I decided to initially draw a wireframe of how I wanted this web app to display in both desktop and mobile. These can be seen below:
+Knowing that I had chosen a difficult task to complete within the timeframe provided,  I began with researching the rules of the game; although fairly competent with playing I found it constructive to see them clearly defined; to conclude which were essential to provide the game some conclusion and fulfil the brief set, and which were added niceties should I meet this brief ahead of schedule.
 <br>
-It seemed sensible to first write down all the conditions for each pieces moves and the different result conditions to see what data would be required from turn to turn for operation of the game:
+With this in mind I created an algorithm/flowchart for the gameplay; frequently updated as I better understood the task in front of me.
+<br>
+I also created a wireframe diagram which was not too complex in the case of this project as there were few dynamic elements - this gave a visual objective to this project.
+<br>
 
-- Pawn
-- Pawn Promotion
-- En Passant
-- Rook
-- Castling (NOT COMPLETED)
-- Knight
-- Bishop
-- Queen
-- King
-- Check
-- Checkmate
-- Stalemate
-- Fifty King Moves
-- Three Fold Repetition
-
-After evaluating all of these different conditions, it became apparent that a copy of the board would be essential - I opted for an array of 8 arrays, each of which had 8 elements, totalling our 64 squares.
 <br>
 <br>
 
