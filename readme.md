@@ -29,14 +29,10 @@ Your app must:
 - A readme.md file with explanations of the technologies used, the approach taken, installation instructions, unsolved problems, etc.
 
 ## Technologies
----
 - HTML5
 - CSS3
 - JavaScript
 - Git / GitHub / GitHub Pages
-
-<br>
-<br>
 
 ## Planning
 --
@@ -45,9 +41,6 @@ Knowing that I had chosen a difficult task to complete within the timeframe prov
 With this in mind I created an algorithm/flowchart for the gameplay; frequently updated as I better understood the task in front of me.
 <br>
 I also created a wireframe diagram which was not too complex in the case of this project as there were few dynamic elements - this gave a visual objective to this project.
-<br>
-
-<br>
 <br>
 
 ## Code Process
