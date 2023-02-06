@@ -165,29 +165,30 @@ A piece cannot travel any further than when its path is blocked by a piece of it
 The King cannot be captured; no move should result in the King being taken - if this is ‘possible’ then the opposing player is in checkmate, game over.
 No move should leave the current player’s King in check.
 <br>
-Pieces
-Pawn
-A pawn can move forward one space, providing the destination space is not occupied by a player or opposition piece, as long as the general rules stated above are met.
-A pawn can and may only move forward diagonally, that is left-forward & right-forward, to capture an opposition piece (‘En Passant’, is the only exception to this rule), as long as the general rules stated above are met.
-On its first move only, a pawn may move forward two spaces, providing that there are no player or opposition pieces in this path, or occupying the destination space, as long as the general rules stated above are met.
-Pawn Promotion - Upon reaching the end of the board (the final rank) a pawn may be promoted; that is traded for another piece of the player's preference, as long as the general rules stated above are met.
-Rook
-A rook may move as many spaces in any direction horizontally or vertically, as long as the general rules stated above are met.
-Knight
-Bishop
-A bishop may move as many spaces in any direction diagonally, as long as the general rules stated above are met.
-Queen
-A queen may move as many spaces in any direction horizontally, vertically, or diagonally, as long as the general rules stated above are met. Note, as this is the summation of the Rook and Bishop piece moves, we can summate these piece functions to form the queen piece function.
-King
-The King may move one space in any direction horizontally, vertically, or diagonally, as long as the general rules stated above are met.
+### Pieces
+#### Pawn
+- A pawn can move forward one space, providing the destination space is not occupied by a player or opposition piece, as long as the general rules stated above are met.
+- A pawn can and may only move forward diagonally, that is left-forward & right-forward, to capture an opposition piece (‘En Passant’, is the only exception to this rule), as long as the general rules stated above are met.
+- On its first move only, a pawn may move forward two spaces, providing that there are no player or opposition pieces in this path, or occupying the destination space, as long as the general rules stated above are met.
+- Pawn Promotion - Upon reaching the end of the board (the final rank) a pawn may be promoted; that is traded for another piece of the player's preference, as long as the general rules stated above are met.
+#### Rook
+- A rook may move as many spaces in any direction horizontally or vertically, as long as the general rules stated above are met.
+#### Knight
+- NEEDS TYPING
+#### Bishop
+- A bishop may move as many spaces in any direction diagonally, as long as the general rules stated above are met.
+#### Queen
+- A queen may move as many spaces in any direction horizontally, vertically, or diagonally, as long as the general rules stated above are met. Note, as this is the summation of the Rook and Bishop piece moves, we can summate these piece functions to form the queen piece function.
+#### King
+- The King may move one space in any direction horizontally, vertically, or diagonally, as long as the general rules stated above are met.
 <br>
 Game Concluding Conditions:
-Check - the king could be captured by an opposition piece.
-Checkmate - the above check condition is met and the player has no legal moves available.
-Stalemate
-Standard - the player is not in check and has no legal moves available.
-Fifty King Moves
-Three Fold Repetition
+1. Check - the king could be captured by an opposition piece.
+2. Checkmate - the above check condition is met and the player has no legal moves available.
+3. Stalemate
+   a. Standard - the player is not in check and has no legal moves available.
+   b. Fifty King Moves
+   c. Three Fold Repetition
 <br>
 One game concluding condition that I’m particularly proud of is stalemate which comes from Three Fold Repetition.
 <br>
@@ -197,9 +198,7 @@ By converting the board array into a string it became much easier to compare pre
      let stringBoard = board.map((file) => file.join("-")).join("@");
      this.previousBoards.push(stringBoard);
    }
-```
-<br>
-```
+
    threeFoldRepetition() {
      let uniqueBoards = [...new Set(this.previousBoards)];
      // Don't bother unless any board has been repeated at least once
