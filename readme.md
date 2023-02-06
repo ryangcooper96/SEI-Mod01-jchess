@@ -35,7 +35,6 @@ Your app must:
 - Git / GitHub / GitHub Pages
 
 ## Planning
---
 Knowing that I had chosen a difficult task to complete within the timeframe provided,  I began with researching the rules of the game; although fairly competent with playing I found it constructive to see them clearly defined; to conclude which were essential to provide the game some conclusion and fulfil the brief set, and which were added niceties should I meet this brief ahead of schedule.
 <br>
 With this in mind I created an algorithm/flowchart for the gameplay; frequently updated as I better understood the task in front of me.
@@ -44,295 +43,173 @@ I also created a wireframe diagram which was not too complex in the case of this
 <br>
 
 ## Code Process
----
-Setting up a game
-playing a game
+After some initial file setup, It seemed sensible to begin this project with creating the few html elements required and some initial styling to provide a working view of the progress made. 
 <br>
+With the large amount of logic that would be required it quickly became apparent that the code would be more legible and cleaner if a Class syntax was used.
 <br>
-
-## The `Chess` Class
----
-the `Chess` Class takes in two arguments; `player1` & `player2`; via the constructor method, and are applied to the `activePlayer` and `inactivePlayer` properties when a new object is created. During play these two properties will alternate the player they are assigned to as we alternate between player turns.
-
-Other properties include:
-- `firstSelectionValue` which will take the value of the DOM element targeted by a player's "click" or "touch" from event listeners applied to each board square. As each turn will require two inputs from a player, this property acts as a holding variable - this will be expanded on in the `selectionHandler()` function description.
-- `lastMove` which holds the previous player's move. A certain requirement when determining some future moves.
-- `previousBoards` holds all the previous boards, or piece positions, a necessity for determining the three-fold repetition stalemate ruling.
-- `board` displays the current piece positions on the board in the form of an array containing 8 arrays representing each rank and 8 elements representing each file on that rank.
-
+PICTURE
 <br>
-<br>
-
-## The `Player` Class
----
-<br>
-<br>
-
-## The `Cpu` sub-Class
----
-<br>
-<br>
-
-## A Player's Turn
----
-A player's turn will consist of a minimum of two events; these events will either be mouse clicks or screen touches dependant on the device; however they will be handled in the same way, with the `selectionHandler()` passed as a callback function into an event listener.
-
-```
-square.addEventListener("click", (e) => selectionHandler(e));
-```
-```    
-square.addEventListener("touchEnd", (e) => selectionHandler(e));
-```
-
-Notice that these are event listeners that we added to each board square when using the `createBoard()` function.
-<br>
-<br>
-
-### Selection Handler | `selectionHandler()`
----
-The selection handler function is responsible for all player moves. As two selections are required for a player to make a move, it must be able to determine whether a new selection is the:
-
-- First Selection - a player selecting one of their pieces. 
-- Second Selection - a player selecting viable move.
-- Reset 'Highlighted' - if neither of the first two conditions are met, or just condition two, then remove 'highlight' class from all squares which have them.
+The chess board could be created with the required click event listeners by looping over an individual square for the 8 files and ranks (rows and columns) to create the total 64 squares that constitute the board, populating with pieces where appropriate.
 <br>
 ```
-function selectionHandler(e) {
-    // First Selection - a player selecting one of their pieces. 
-    if (!Chess.firstSelection) {
-        firstSelection(e.target);
-    } else {
-        // Second Selection - a player selecting viable move.
-        secondSelection(Chess.firstSelection, e.target);
-        // Reset 'Highlighted' - 
-        document.querySelectorAll(".square").forEach((square) => {
-            if (square.classList.contains("highlight")) {
-                square.classList.remove("highlight");
-            }
-        });
-    }
-}
+   createUI() {
+     // loop for 8 ranks
+     for (let rank = 0; rank < 8; rank++) {
+       // loop for 8 columns
+       for (let file = 0; file < 8; file++) {
+         // create board square element
+         const square = document.createElement("div");
+         square.classList.add("square");
+         // if rank is even...
+         if (rank % 2) {
+           // if column is even...
+           if (file % 2) {
+             square.classList.add("white");
+             // if column is odd...
+           } else {
+             square.classList.add("black");
+           }
+           // if rank is odd...
+         } else {
+           // if column is even...
+           if (file % 2) {
+             square.classList.add("black");
+             // if column is odd...
+           } else {
+             square.classList.add("white");
+           }
+         }
+         // add column and rank dataset attributes with respective index values
+         square.setAttribute("data-rank", rank);
+         square.setAttribute("data-file", file);
+         // add event listener
+         square.addEventListener("click", (e) => this.selectionHandler(e));
+         // add piece image
+         if (this.board[rank][file]) {
+           square.innerHTML = `<img width="40px" height="60px" data-rank="${rank}" data-file="${file}" data-piece="${this.board[rank][file]}" data-moveCount="0" src="chess-pieces/${this.board[rank][file]}.png">`;
+         }
+         // add square to board
+         this.boardHTML.appendChild(square);
+       }
+     }
+   }
 ```
+Having investigated how a player would interact with this turn-based game it became apparent that only a simple user interface was required - with only two user selections required to make a move, a first selection of one of the player’s pieces, a second selection with the piece’s new location.
 <br>
-We can see that if the `Chess` object's firstSelection key does not currently have a value then the `firstSelection()` function will run. Else if firstSelection does have a value set then the secondSelection will run; this will then be preceded by resetting the highlighted squares.
+The click event listener applied to the Square DOM Elements, named ‘selectionHandler’, operates as follows:
 <br>
+PICTURE
 <br>
-
-### First Selection | `firstSelection()`
----
-This function's purpose is to check if a player's piece has been selected and if so:
-1. Access the element from the DOM.
-2. Add the 'highlight' class to the parent square of the (piece) DOM Element selected.
-3. Add the 'highlight' class to the square of all feasible moves for the (piece) DOM Element selected:
-    - If the feasible move is an opposition piece, then it will target the Parent Element.
-    - If the feasible move is an empty square, then it wil target that Element.
-<br>    
+The two possible outcomes, firstSelection and secondSelection operate as follows:
+<br>
+PICTURE
+<br>
+If an acceptable first selection was made, i.e. an active player’s piece, then that piece and all legal moves it can make will be highlighted.
+<br>
+PICTURE
+<br>
+If an acceptable second selection was chosen, i.e. a highlighted square, then one of two outcomes will be called. Either way, this move will be stored in its own property, the move will be instantiated in the UI, the ‘check’ class will be removed (if applicable) from the UI, Pawn Promotion will be prompted to the user (if applicable), and the updated board data will stored in it’s own property. The only difference comes when a move involves the capture of an opposition piece, where in the UI the piece will be added to the capturing player’s status bar and removed from the game board.
+<br>
+This concludes the operations which are initiated by a user’s interaction. However, it tells us little about how the rules of the game have been woven into this program; The complexity of determining which pieces could be ‘legally’ selected as the first selection, and which new locations could be ‘legally’ selected as the second selection. This is handled by the ‘setupNextTurn’ function which is invoked once Pawn Promotion (any last board manipulation) has been concluded. For Brevity, I will not go into exhaustive detail, but instead leave you with the flowchart below and give a few examples of the process.
+<br>
+PICTURE
+<br>
+The first example that I will provide is for ‘Find All Moves Available For Each of the Active Player’s Pieces’. Once choosePieceFunction() is invoked, the program will determine which piece it is trying to find available moves for and point towards the relevant function. If the piece was a Bishop then it would point to the ‘bishop()’ function:
 ```
-function firstSelection(finish) {
-    Chess.playerPieces.forEach((piece) => {
-      if (piece.row === parseInt(finish.dataset.row)) {
-        if (piece.col === parseInt(finish.dataset.col)) {
-          // add the firstSelection square DOM element to the firstSelection key value
-          Chess.firstSelection = document.querySelector(
-            `[data-row='${piece.row}'][data-col='${piece.col}']`
-          );
-          // highlight the firstSelection square
-          Chess.firstSelection.classList.add("highlight");
-          // highlight the squares of all feasible moves for that piece
-          piece.moves.forEach((square) => {
-            if (
-              document
-                .querySelector(
-                  `[data-row='${square.row}'][data-col='${square.col}']`
-                )
-                .hasAttribute("data-piece")
-            ) {
-              document
-                .querySelector(
-                  `[data-row='${square.row}'][data-col='${square.col}']`
-                )
-                .parentElement.classList.add("highlight");
-            } else {
-              document
-                .querySelector(
-                  `[data-row='${square.row}'][data-col='${square.col}']`
-                )
-                .classList.add("highlight");
-            }
-          });
-        }
-      }
-    });
-  }
+   bishop(activePlaye, inactivePlayer, element) {
+     // loop for ranks + columns
+     // positive rank direction - positive column direction
+     for (let i = 1; i < 8; i++) {
+       if (this.boundaryBottom(element, i) && this.boundaryRight(element, i)) {
+         if (this.isEmpty(this.boardLocation(element, i, i))) {
+           this.pushMove(element, i, i);
+         } else if (
+           this.isKing(
+             this.boardLocation(element, i, i),
+             inactivePlayer.colour
+           )
+         ) {
+           this.pushMove(element, i, i, true);
+           break;
+         } else if (
+           this.isPiece(
+             this.boardLocation(element, i, i),
+             inactivePlayer.colour
+           )
+         ) {
+           this.pushMove(element, i, i);
+           break;
+         } else {
+           break;
+         }
+       } else {
+         break;
+       }
+     }
+     // positive rank direction - negative column direction
+     for (let i = 1; i < 8; i++) { …
+     }
+     // negative rank direction - positive column direction
+     for (let i = 1; i < 8; i++) { …
+     }
+     // negative rank direction - negative column direction
+     for (let i = 1; i < 8; i++) { …
+     }
+   }
 ```
+If all conditions are met then the move is pushed to the pieces.moves array. A list of both general conditions and piece specific conditions can be seen below:
 <br>
+General Conditions for movement of pieces:
+Any move must ensure that the piece remains on the board.
+A piece cannot travel any further than when its path is blocked by a piece of its own or opposing colour. The only exception to this rule is the Knight.
+The King cannot be captured; no move should result in the King being taken - if this is ‘possible’ then the opposing player is in checkmate, game over.
+No move should leave the current player’s King in check.
 <br>
-
-### Second Selection | `secondSelection()`
----
-This function's purpose is to check if a feasible move has been selected, and if this move is:
-1. An opposition piece - which will initiate:
-    - movePiece()
-    - addCapturedPiece()
-    - setupNextTurn()
-2. An empty square - which will initiate:
-    - movePiece()
-    - setupNextTurn()
-<br>
-```
-  function secondSelection(start, finish) {
-    console.log("secondSelection");
-    // due to bubbling, if a square containing a piece is selected then e.target will equate to the piece.
-    if (finish.parentElement.classList.contains("highlight")) {
-      if (!finish.dataset.piece.includes(Chess.colour)) {
-        movePiece(start, finish.parentElement);
-        addCapturedPiece(finish);
-        setupNextTurn();
-      } else {
-        Chess.firstSelection = undefined;
-      }
-    }
-    // if an empty square is selected.
-    else if (finish.classList.contains("highlight")) {
-      movePiece(start, finish);
-      setupNextTurn();
-    } else {
-      // remove the firstSelection key value...
-      Chess.firstSelection = undefined;
-    }
-  }
-```  
-<br>
-<br>
-
-### Move Piece | `movePiece()`
----
-<br>
-<br>
-
-### Display Captured Piece | `addCapturedPiece()`
----
-<br>
-<br>
-
-### Set Up Next Turn | `setUpNextTurn()`
----
-<br>
-<br>
-
-## Determining a Winner!
----
-If a player has no viable moves returned from the function `viableMoves()`...
-- ...and they are in check. They have lost!
-- ...and they are NOT in check. The game is a draw, Stalemate! 
-<br>
-<br>
-
-## Determining Viable Moves
----
-After updating the `Chess` object's `pieceLocations` key to have an array as value, which contains all of the current player's pieces, we would like to determine all of the possible moves for each piece.
-
-we want each object passed into the `pieceLocations` array to be passed to the relevant piece function dependant on it's piece value:
-<br>
-
-```
-function viableMoves() {
-    chess.pieceLocations.forEach((element) => {
-      if (element.piece.includes("P")) {
-        pawn(element);
-      } else if (element.piece.includes("R")) {
-        rook(element);
-      } else if (element.piece.includes("N")) {
-        knight(element);
-      } else if (element.piece.includes("B")) {
-        bishop(element);
-      } else if (element.piece.includes("Q")) {
-        queen(element);
-      } else if (element.piece.includes("K")) {
-        king(element);
-      }
-    });   
-}   
-```
-<br>
-<br>
-
-
-## Piece Functions
----
-Each piece function should determine the viable moves of a piece utilising just the `Chess` object's `boardArray` key-value, and in some cases specific data attribute values for that piece (e.g. a Pawn's first move, en Passant & Castling).
-<br>
-There are six pieces different pieces and therefore six different piece functions:
-<br>
-- `pawn()`
-- `rook()`
-- `knight()`
-- `bishop()`
-- `queen()`
-- `king()`
-<br>
-
-There are some general rules which will apply to all pieces, it should be presumed that these are applied unless otherwise mentioned in the individual piece functions; these general rules are as follows:
-<br>
-
-- All viable moves must ensure that the piece remains on the board; as the board is indexed by row and column, this rule gives conditions as follows:
-
-    - -1 < row value > 8
-    - -1 < column value > 8
-
-- Pieces cannot move any further than the point where their path is blocked by a player or opposition piece (with the exception of the knight).    
-
-- `kingCaptured()` - The King can not be captured; no viable move should result in the opposition king being taken.
-
-- `inCheck()` - No move should leave the player's King in check or checkmate.
-
-<br>
-<br>
-
-
-### Pawn | `pawn()`
----
-A Pawn has a very specific set of rules for it's movement which provides some challenges to program:
-
-1. A pawn can move forward one space, providing the destination space is not occupied by a player or opposition piece.
-
-2. A pawn can and may only move forward diagonally, that is left-forward & right-forward, to capture an opposition piece - rule 3, en Passant, is the only exception to this rule.
-
-3. *en Passant*,
-
-4. On it's first move only, a pawn may move forward two spaces, providing that there are no player or opposition pieces in this path, or occupying the destination space.
-
-5. *Pawn Promotion* - Upon reaching the end of the board (the final rank) a pawn may be promoted; that is traded for another piece of the players preference.
-<br> 
-<br>
-
-### Rook | `rook()`
----
+Pieces
+Pawn
+A pawn can move forward one space, providing the destination space is not occupied by a player or opposition piece, as long as the general rules stated above are met.
+A pawn can and may only move forward diagonally, that is left-forward & right-forward, to capture an opposition piece (‘En Passant’, is the only exception to this rule), as long as the general rules stated above are met.
+On its first move only, a pawn may move forward two spaces, providing that there are no player or opposition pieces in this path, or occupying the destination space, as long as the general rules stated above are met.
+Pawn Promotion - Upon reaching the end of the board (the final rank) a pawn may be promoted; that is traded for another piece of the player's preference, as long as the general rules stated above are met.
+Rook
 A rook may move as many spaces in any direction horizontally or vertically, as long as the general rules stated above are met.
-<br>
-<br>
-
-### Knight | `knight()`
----
-<br>
-<br>
-
-### Bishop | `bishop()`
----
+Knight
+Bishop
 A bishop may move as many spaces in any direction diagonally, as long as the general rules stated above are met.
-<br>
-<br>
-
-### Queen | `queen()`
----
-A queen may move as many spaces in any direction horizontally, vertically, or diagonally, as long as the general rules stated above are met. As this is the summation of the Rook and Bishop piece moves, we can use those piece functions to form the queen piece function as such.
-<br>
-<br>
-
-### King | `king()`
----
+Queen
+A queen may move as many spaces in any direction horizontally, vertically, or diagonally, as long as the general rules stated above are met. Note, as this is the summation of the Rook and Bishop piece moves, we can summate these piece functions to form the queen piece function.
+King
 The King may move one space in any direction horizontally, vertically, or diagonally, as long as the general rules stated above are met.
 <br>
+Game Concluding Conditions:
+Check - the king could be captured by an opposition piece.
+Checkmate - the above check condition is met and the player has no legal moves available.
+Stalemate
+Standard - the player is not in check and has no legal moves available.
+Fifty King Moves
+Three Fold Repetition
 <br>
-
-
+One game concluding condition that I’m particularly proud of is stalemate which comes from Three Fold Repetition.
+<br>
+By converting the board array into a string it became much easier to compare previous boards and conclude any repetition.
+```
+   saveBoard(board) {
+     let stringBoard = board.map((file) => file.join("-")).join("@");
+     this.previousBoards.push(stringBoard);
+   }
+```
+<br>
+```
+   threeFoldRepetition() {
+     let uniqueBoards = [...new Set(this.previousBoards)];
+     // Don't bother unless any board has been repeated at least once
+     if (uniqueBoards.length < this.previousBoards.length + 1) {
+       return uniqueBoards.some((prevBoard) => {
+         let inst = this.previousBoards.filter((boardString) => {
+           boardString === prevBoard;
+         });
+         return inst.length > 2;
+       });
+     }
+   }
+```
